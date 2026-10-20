@@ -1,0 +1,33 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------< com.spacedoc:spacedoc-intelligence >-----------------
+[INFO] Building SpaceDoc Intelligence 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ war ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.3.2:clean (default-clean) @ spacedoc-intelligence ---
+[INFO] Deleting C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO\target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ spacedoc-intelligence ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ spacedoc-intelligence ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 33 source files with javac [debug parameters release 17] to target\classes
+[INFO] /C:/Users/ELCOT/Desktop/Advance_JAVA/ISRO/src/main/java/com/spacedoc/service/EmbeddingService.java: C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO\src\main\java\com\spacedoc\service\EmbeddingService.java uses unchecked or unsafe operations.
+[INFO] /C:/Users/ELCOT/Desktop/Advance_JAVA/ISRO/src/main/java/com/spacedoc/service/EmbeddingService.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ spacedoc-intelligence ---
+[INFO] skip non existing resourceDirectory C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ spacedoc-intelligence ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ spacedoc-intelligence ---
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  7.571 s
+[INFO] Finished at: 2026-10-20T12:48:21+05:30
+[INFO] ------------------------------------------------------------------------

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector extension
+  postgres:
+    image: pgvector/pgvector:0.8.7-pg16
+    container_name: spacedoc-postgres
+    environment:
+      POSTGRES_DB: spacedoc
+      POSTGRES_USER: spacedoc
+      POSTGRES_PASSWORD: spacedoc_local_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - spacedoc-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spacedoc"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Ollama for local LLM inference
+  ollama:
+    image: ollama/ollama:latest
+    container_name: spacedoc-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - spacedoc-network
+    environment:
+      - OLLAMA_NUM_GPU=0  # Set to appropriate value if GPU available
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  ollama_data:
+    driver: local
+
+networks:
+  spacedoc-network:
+    driver: bridge

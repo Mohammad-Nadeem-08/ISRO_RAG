@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.spacedoc.service.AnswerGenerationServiceTest
+-------------------------------------------------------------------------------
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.197 s -- in com.spacedoc.service.AnswerGenerationServiceTest

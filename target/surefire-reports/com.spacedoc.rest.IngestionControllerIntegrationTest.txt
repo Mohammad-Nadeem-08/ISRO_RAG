@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.spacedoc.rest.IngestionControllerIntegrationTest
+-------------------------------------------------------------------------------
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 30.18 s -- in com.spacedoc.rest.IngestionControllerIntegrationTest

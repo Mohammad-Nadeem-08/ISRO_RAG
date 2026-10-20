@@ -1,0 +1,43 @@
+{
+  "datasetName": "spacedoc-benchmark-v2-authorized",
+  "version": "2.0.0",
+  "description": "Authorized ISRO technical document evaluation benchmark with annotated revisions, expected chunk IDs, and conflict pairs",
+  "questions": [
+    {
+      "id": "AUTH-Q-001",
+      "questionText": "What are the primary propulsion parameters for the lunar orbital insertion burn in Revision 2?",
+      "relevantDocumentKeys": ["DOC-LUNAR-01", "DOC-PROP-02"],
+      "targetRevisionNumber": 2,
+      "expectedChunkIds": [101, 102],
+      "hasConflict": true,
+      "conflictDescription": "Revision 1 specified 850N thrust while Revision 2 updated to 920N thrust."
+    },
+    {
+      "id": "AUTH-Q-002",
+      "questionText": "Which cryptographic standards are mandated for S-band telemetry downlink security?",
+      "relevantDocumentKeys": ["DOC-SEC-01", "DOC-COMM-04"],
+      "targetRevisionNumber": 1,
+      "expectedChunkIds": [201, 205],
+      "hasConflict": false,
+      "conflictDescription": null
+    },
+    {
+      "id": "AUTH-Q-003",
+      "questionText": "What is the maximum operating junction temperature for solar array regulator electronics?",
+      "relevantDocumentKeys": ["DOC-PWR-03"],
+      "targetRevisionNumber": 1,
+      "expectedChunkIds": [301],
+      "hasConflict": false,
+      "conflictDescription": null
+    },
+    {
+      "id": "AUTH-Q-004",
+      "questionText": "Detail the reaction wheel desaturation protocol and momentum management limits.",
+      "relevantDocumentKeys": ["DOC-AOCS-01", "DOC-AOCS-02"],
+      "targetRevisionNumber": 2,
+      "expectedChunkIds": [401, 402, 403],
+      "hasConflict": true,
+      "conflictDescription": "Desaturation rate limit changed from 0.5 Nm/s to 0.8 Nm/s in Revision 2."
+    }
+  ]
+}

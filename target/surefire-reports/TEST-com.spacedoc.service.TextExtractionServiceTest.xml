@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.spacedoc.service.TextExtractionServiceTest" time="17.879" tests="6" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="25"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="Cp1252"/>
+    <property name="java.class.path" value="C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO\target\test-classes;C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO\target\classes;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.3.0\spring-boot-starter-web-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter\3.3.0\spring-boot-starter-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot\3.3.0\spring-boot-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.3.0\spring-boot-autoconfigure-3.3.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\ELCOT\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.3.0\spring-boot-starter-json-3.3.0.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.17.1\jackson-datatype-jdk8-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.17.1\jackson-datatype-jsr310-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.17.1\jackson-module-parameter-names-2.17.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.3.0\spring-boot-starter-tomcat-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.24\tomcat-embed-websocket-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-web\6.1.8\spring-web-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-beans\6.1.8\spring-beans-6.1.8.jar;C:\Users\ELCOT\.m2\repository\io\micrometer\micrometer-observation\1.13.0\micrometer-observation-1.13.0.jar;C:\Users\ELCOT\.m2\repository\io\micrometer\micrometer-commons\1.13.0\micrometer-commons-1.13.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-webmvc\6.1.8\spring-webmvc-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-context\6.1.8\spring-context-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-expression\6.1.8\spring-expression-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\embed\tomcat-embed-jasper\10.1.24\tomcat-embed-jasper-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.24\tomcat-embed-core-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\tomcat-annotations-api\10.1.24\tomcat-annotations-api-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.24\tomcat-embed-el-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\eclipse\jdt\ecj\3.33.0\ecj-3.33.0.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\tomcat-jsp-api\10.1.24\tomcat-jsp-api-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\tomcat-el-api\10.1.24\tomcat-el-api-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\tomcat-servlet-api\10.1.24\tomcat-servlet-api-10.1.24.jar;C:\Users\ELCOT\.m2\repository\jakarta\servlet\jsp\jstl\jakarta.servlet.jsp.jstl-api\3.0.0\jakarta.servlet.jsp.jstl-api-3.0.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\servlet\jakarta.servlet-api\6.0.0\jakarta.servlet-api-6.0.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\el\jakarta.el-api\5.0.0\jakarta.el-api-5.0.0.jar;C:\Users\ELCOT\.m2\repository\org\glassfish\web\jakarta.servlet.jsp.jstl\3.0.1\jakarta.servlet.jsp.jstl-3.0.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.3.0\spring-boot-starter-data-jpa-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.3.0\spring-boot-starter-aop-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\aspectj\aspectjweaver\1.9.22\aspectjweaver-1.9.22.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.3.0\spring-boot-starter-jdbc-3.3.0.jar;C:\Users\ELCOT\.m2\repository\com\zaxxer\HikariCP\5.1.0\HikariCP-5.1.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-jdbc\6.1.8\spring-jdbc-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\hibernate\orm\hibernate-core\6.5.2.Final\hibernate-core-6.5.2.Final.jar;C:\Users\ELCOT\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\ELCOT\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\ELCOT\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\ELCOT\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\classmate\1.7.0\classmate-1.7.0.jar;C:\Users\ELCOT\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.5\jaxb-runtime-4.0.5.jar;C:\Users\ELCOT\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.5\jaxb-core-4.0.5.jar;C:\Users\ELCOT\.m2\repository\org\eclipse\angus\angus-activation\2.0.2\angus-activation-2.0.2.jar;C:\Users\ELCOT\.m2\repository\org\glassfish\jaxb\txw2\4.0.5\txw2-4.0.5.jar;C:\Users\ELCOT\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\ELCOT\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\ELCOT\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\data\spring-data-jpa\3.3.0\spring-data-jpa-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\data\spring-data-commons\3.3.0\spring-data-commons-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-orm\6.1.8\spring-orm-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-tx\6.1.8\spring-tx-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-aspects\6.1.8\spring-aspects-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\postgresql\postgresql\42.7.2\postgresql-42.7.2.jar;C:\Users\ELCOT\.m2\repository\org\checkerframework\checker-qual\3.42.0\checker-qual-3.42.0.jar;C:\Users\ELCOT\.m2\repository\com\pgvector\pgvector\0.1.1\pgvector-0.1.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.3.0\spring-boot-starter-security-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-aop\6.1.8\spring-aop-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-config\6.3.0\spring-security-config-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-web\6.3.0\spring-security-web-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-webflux\3.3.0\spring-boot-starter-webflux-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-reactor-netty\3.3.0\spring-boot-starter-reactor-netty-3.3.0.jar;C:\Users\ELCOT\.m2\repository\io\projectreactor\netty\reactor-netty-http\1.1.19\reactor-netty-http-1.1.19.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec-http\4.1.110.Final\netty-codec-http-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-common\4.1.110.Final\netty-common-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-buffer\4.1.110.Final\netty-buffer-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-transport\4.1.110.Final\netty-transport-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec\4.1.110.Final\netty-codec-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-handler\4.1.110.Final\netty-handler-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec-http2\4.1.110.Final\netty-codec-http2-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-resolver-dns\4.1.110.Final\netty-resolver-dns-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-resolver\4.1.110.Final\netty-resolver-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec-dns\4.1.110.Final\netty-codec-dns-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-resolver-dns-native-macos\4.1.110.Final\netty-resolver-dns-native-macos-4.1.110.Final-osx-x86_64.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-resolver-dns-classes-macos\4.1.110.Final\netty-resolver-dns-classes-macos-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-transport-native-epoll\4.1.110.Final\netty-transport-native-epoll-4.1.110.Final-linux-x86_64.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-transport-native-unix-common\4.1.110.Final\netty-transport-native-unix-common-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-transport-classes-epoll\4.1.110.Final\netty-transport-classes-epoll-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\projectreactor\netty\reactor-netty-core\1.1.19\reactor-netty-core-1.1.19.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-handler-proxy\4.1.110.Final\netty-handler-proxy-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec-socks\4.1.110.Final\netty-codec-socks-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-webflux\6.1.8\spring-webflux-6.1.8.jar;C:\Users\ELCOT\.m2\repository\io\projectreactor\reactor-core\3.6.6\reactor-core-3.6.6.jar;C:\Users\ELCOT\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\ELCOT\.m2\repository\org\apache\pdfbox\pdfbox\3.0.1\pdfbox-3.0.1.jar;C:\Users\ELCOT\.m2\repository\org\apache\pdfbox\pdfbox-io\3.0.1\pdfbox-io-3.0.1.jar;C:\Users\ELCOT\.m2\repository\org\apache\pdfbox\fontbox\3.0.1\fontbox-3.0.1.jar;C:\Users\ELCOT\.m2\repository\commons-logging\commons-logging\1.2\commons-logging-1.2.jar;C:\Users\ELCOT\.m2\repository\org\apache\tika\tika-core\2.9.0\tika-core-2.9.0.jar;C:\Users\ELCOT\.m2\repository\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;C:\Users\ELCOT\.m2\repository\org\jsoup\jsoup\1.17.1\jsoup-1.17.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.3.0\spring-boot-starter-validation-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\ELCOT\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\ELCOT\.m2\repository\org\flywaydb\flyway-core\10.10.0\flyway-core-10.10.0.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.17.1\jackson-dataformat-toml-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\ELCOT\.m2\repository\org\flywaydb\flyway-database-postgresql\10.10.0\flyway-database-postgresql-10.10.0.jar;C:\Users\ELCOT\.m2\repository\commons-io\commons-io\2.16.1\commons-io-2.16.1.jar;C:\Users\ELCOT\.m2\repository\commons-lang\commons-lang\2.6\commons-lang-2.6.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.17.1\jackson-databind-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.17.1\jackson-annotations-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.17.1\jackson-core-2.17.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.3.0\spring-boot-starter-logging-3.3.0.jar;C:\Users\ELCOT\.m2\repository\ch\qos\logback\logback-classic\1.5.6\logback-classic-1.5.6.jar;C:\Users\ELCOT\.m2\repository\ch\qos\logback\logback-core\1.5.6\logback-core-1.5.6.jar;C:\Users\ELCOT\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.23.1\log4j-to-slf4j-2.23.1.jar;C:\Users\ELCOT\.m2\repository\org\apache\logging\log4j\log4j-api\2.23.1\log4j-api-2.23.1.jar;C:\Users\ELCOT\.m2\repository\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.3.0\spring-boot-starter-test-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-test\3.3.0\spring-boot-test-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.3.0\spring-boot-test-autoconfigure-3.3.0.jar;C:\Users\ELCOT\.m2\repository\com\jayway\jsonpath\json-path\2.9.0\json-path-2.9.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar;C:\Users\ELCOT\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\ELCOT\.m2\repository\net\minidev\json-smart\2.5.1\json-smart-2.5.1.jar;C:\Users\ELCOT\.m2\repository\net\minidev\accessors-smart\2.5.1\accessors-smart-2.5.1.jar;C:\Users\ELCOT\.m2\repository\org\ow2\asm\asm\9.6\asm-9.6.jar;C:\Users\ELCOT\.m2\repository\org\assertj\assertj-core\3.25.3\assertj-core-3.25.3.jar;C:\Users\ELCOT\.m2\repository\org\awaitility\awaitility\4.2.1\awaitility-4.2.1.jar;C:\Users\ELCOT\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\ELCOT\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\ELCOT\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-core\6.1.8\spring-core-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-jcl\6.1.8\spring-jcl-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-test\6.1.8\spring-test-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-test\6.3.0\spring-security-test-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-core\6.3.0\spring-security-core-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-crypto\6.3.0\spring-security-crypto-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.2\junit-jupiter-5.10.2.jar;C:\Users\ELCOT\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.2\junit-jupiter-api-5.10.2.jar;C:\Users\ELCOT\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\ELCOT\.m2\repository\org\junit\platform\junit-platform-commons\1.10.2\junit-platform-commons-1.10.2.jar;C:\Users\ELCOT\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\ELCOT\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.2\junit-jupiter-params-5.10.2.jar;C:\Users\ELCOT\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.2\junit-jupiter-engine-5.10.2.jar;C:\Users\ELCOT\.m2\repository\org\junit\platform\junit-platform-engine\1.10.2\junit-platform-engine-1.10.2.jar;C:\Users\ELCOT\.m2\repository\org\mockito\mockito-core\5.11.0\mockito-core-5.11.0.jar;C:\Users\ELCOT\.m2\repository\net\bytebuddy\byte-buddy\1.14.16\byte-buddy-1.14.16.jar;C:\Users\ELCOT\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.16\byte-buddy-agent-1.14.16.jar;C:\Users\ELCOT\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\ELCOT\.m2\repository\org\mockito\mockito-junit-jupiter\5.11.0\mockito-junit-jupiter-5.11.0.jar;C:\Users\ELCOT\.m2\repository\org\mockito\mockito-inline\5.2.0\mockito-inline-5.2.0.jar;C:\Users\ELCOT\.m2\repository\com\h2database\h2\2.2.224\h2-2.2.224.jar;C:\Users\ELCOT\.m2\repository\org\testcontainers\testcontainers\1.19.8\testcontainers-1.19.8.jar;C:\Users\ELCOT\.m2\repository\junit\junit\4.13.2\junit-4.13.2.jar;C:\Users\ELCOT\.m2\repository\org\hamcrest\hamcrest-core\2.2\hamcrest-core-2.2.jar;C:\Users\ELCOT\.m2\repository\org\apache\commons\commons-compress\1.24.0\commons-compress-1.24.0.jar;C:\Users\ELCOT\.m2\repository\org\rnorth\duct-tape\duct-tape\1.0.8\duct-tape-1.0.8.jar;C:\Users\ELCOT\.m2\repository\org\jetbrains\annotations\17.0.0\annotations-17.0.0.jar;C:\Users\ELCOT\.m2\repository\com\github\docker-java\docker-java-api\3.3.6\docker-java-api-3.3.6.jar;C:\Users\ELCOT\.m2\repository\com\github\docker-java\docker-java-transport-zerodep\3.3.6\docker-java-transport-zerodep-3.3.6.jar;C:\Users\ELCOT\.m2\repository\com\github\docker-java\docker-java-transport\3.3.6\docker-java-transport-3.3.6.jar;C:\Users\ELCOT\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\ELCOT\.m2\repository\org\testcontainers\postgresql\1.19.8\postgresql-1.19.8.jar;C:\Users\ELCOT\.m2\repository\org\testcontainers\jdbc\1.19.8\jdbc-1.19.8.jar;C:\Users\ELCOT\.m2\repository\org\testcontainers\database-commons\1.19.8\database-commons-1.19.8.jar;"/>
+    <property name="java.vm.vendor" value="Eclipse Adoptium"/>
+    <property name="net.bytebuddy.experimental" value="true"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://adoptium.net/"/>
+    <property name="user.timezone" value="Asia/Calcutta"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="25"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="IN"/>
+    <property name="sun.boot.library.path" value="C:\Users\ELCOT\AppData\Local\Programs\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin"/>
+    <property name="sun.java.command" value="C:\Users\ELCOT\AppData\Local\Temp\surefire11187161135241489701\surefirebooter-20261021003233971_3.jar C:\Users\ELCOT\AppData\Local\Temp\surefire11187161135241489701 2026-10-21T00-32-33_648-jvmRun1 surefire-20261021003233971_1tmp surefire_0-20261021003233971_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="test" value="TextExtractionServiceTest"/>
+    <property name="surefire.test.class.path" value="C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO\target\test-classes;C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO\target\classes;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.3.0\spring-boot-starter-web-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter\3.3.0\spring-boot-starter-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot\3.3.0\spring-boot-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.3.0\spring-boot-autoconfigure-3.3.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\ELCOT\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.3.0\spring-boot-starter-json-3.3.0.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.17.1\jackson-datatype-jdk8-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.17.1\jackson-datatype-jsr310-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.17.1\jackson-module-parameter-names-2.17.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.3.0\spring-boot-starter-tomcat-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.24\tomcat-embed-websocket-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-web\6.1.8\spring-web-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-beans\6.1.8\spring-beans-6.1.8.jar;C:\Users\ELCOT\.m2\repository\io\micrometer\micrometer-observation\1.13.0\micrometer-observation-1.13.0.jar;C:\Users\ELCOT\.m2\repository\io\micrometer\micrometer-commons\1.13.0\micrometer-commons-1.13.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-webmvc\6.1.8\spring-webmvc-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-context\6.1.8\spring-context-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-expression\6.1.8\spring-expression-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\embed\tomcat-embed-jasper\10.1.24\tomcat-embed-jasper-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.24\tomcat-embed-core-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\tomcat-annotations-api\10.1.24\tomcat-annotations-api-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.24\tomcat-embed-el-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\eclipse\jdt\ecj\3.33.0\ecj-3.33.0.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\tomcat-jsp-api\10.1.24\tomcat-jsp-api-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\tomcat-el-api\10.1.24\tomcat-el-api-10.1.24.jar;C:\Users\ELCOT\.m2\repository\org\apache\tomcat\tomcat-servlet-api\10.1.24\tomcat-servlet-api-10.1.24.jar;C:\Users\ELCOT\.m2\repository\jakarta\servlet\jsp\jstl\jakarta.servlet.jsp.jstl-api\3.0.0\jakarta.servlet.jsp.jstl-api-3.0.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\servlet\jakarta.servlet-api\6.0.0\jakarta.servlet-api-6.0.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\el\jakarta.el-api\5.0.0\jakarta.el-api-5.0.0.jar;C:\Users\ELCOT\.m2\repository\org\glassfish\web\jakarta.servlet.jsp.jstl\3.0.1\jakarta.servlet.jsp.jstl-3.0.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.3.0\spring-boot-starter-data-jpa-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-aop\3.3.0\spring-boot-starter-aop-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\aspectj\aspectjweaver\1.9.22\aspectjweaver-1.9.22.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.3.0\spring-boot-starter-jdbc-3.3.0.jar;C:\Users\ELCOT\.m2\repository\com\zaxxer\HikariCP\5.1.0\HikariCP-5.1.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-jdbc\6.1.8\spring-jdbc-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\hibernate\orm\hibernate-core\6.5.2.Final\hibernate-core-6.5.2.Final.jar;C:\Users\ELCOT\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\ELCOT\.m2\repository\org\jboss\logging\jboss-logging\3.5.3.Final\jboss-logging-3.5.3.Final.jar;C:\Users\ELCOT\.m2\repository\org\hibernate\common\hibernate-commons-annotations\6.0.6.Final\hibernate-commons-annotations-6.0.6.Final.jar;C:\Users\ELCOT\.m2\repository\io\smallrye\jandex\3.1.2\jandex-3.1.2.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\classmate\1.7.0\classmate-1.7.0.jar;C:\Users\ELCOT\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.5\jaxb-runtime-4.0.5.jar;C:\Users\ELCOT\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.5\jaxb-core-4.0.5.jar;C:\Users\ELCOT\.m2\repository\org\eclipse\angus\angus-activation\2.0.2\angus-activation-2.0.2.jar;C:\Users\ELCOT\.m2\repository\org\glassfish\jaxb\txw2\4.0.5\txw2-4.0.5.jar;C:\Users\ELCOT\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\ELCOT\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\ELCOT\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\data\spring-data-jpa\3.3.0\spring-data-jpa-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\data\spring-data-commons\3.3.0\spring-data-commons-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-orm\6.1.8\spring-orm-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-tx\6.1.8\spring-tx-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-aspects\6.1.8\spring-aspects-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\postgresql\postgresql\42.7.2\postgresql-42.7.2.jar;C:\Users\ELCOT\.m2\repository\org\checkerframework\checker-qual\3.42.0\checker-qual-3.42.0.jar;C:\Users\ELCOT\.m2\repository\com\pgvector\pgvector\0.1.1\pgvector-0.1.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.3.0\spring-boot-starter-security-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-aop\6.1.8\spring-aop-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-config\6.3.0\spring-security-config-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-web\6.3.0\spring-security-web-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-webflux\3.3.0\spring-boot-starter-webflux-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-reactor-netty\3.3.0\spring-boot-starter-reactor-netty-3.3.0.jar;C:\Users\ELCOT\.m2\repository\io\projectreactor\netty\reactor-netty-http\1.1.19\reactor-netty-http-1.1.19.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec-http\4.1.110.Final\netty-codec-http-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-common\4.1.110.Final\netty-common-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-buffer\4.1.110.Final\netty-buffer-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-transport\4.1.110.Final\netty-transport-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec\4.1.110.Final\netty-codec-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-handler\4.1.110.Final\netty-handler-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec-http2\4.1.110.Final\netty-codec-http2-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-resolver-dns\4.1.110.Final\netty-resolver-dns-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-resolver\4.1.110.Final\netty-resolver-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec-dns\4.1.110.Final\netty-codec-dns-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-resolver-dns-native-macos\4.1.110.Final\netty-resolver-dns-native-macos-4.1.110.Final-osx-x86_64.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-resolver-dns-classes-macos\4.1.110.Final\netty-resolver-dns-classes-macos-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-transport-native-epoll\4.1.110.Final\netty-transport-native-epoll-4.1.110.Final-linux-x86_64.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-transport-native-unix-common\4.1.110.Final\netty-transport-native-unix-common-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-transport-classes-epoll\4.1.110.Final\netty-transport-classes-epoll-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\projectreactor\netty\reactor-netty-core\1.1.19\reactor-netty-core-1.1.19.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-handler-proxy\4.1.110.Final\netty-handler-proxy-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\io\netty\netty-codec-socks\4.1.110.Final\netty-codec-socks-4.1.110.Final.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-webflux\6.1.8\spring-webflux-6.1.8.jar;C:\Users\ELCOT\.m2\repository\io\projectreactor\reactor-core\3.6.6\reactor-core-3.6.6.jar;C:\Users\ELCOT\.m2\repository\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;C:\Users\ELCOT\.m2\repository\org\apache\pdfbox\pdfbox\3.0.1\pdfbox-3.0.1.jar;C:\Users\ELCOT\.m2\repository\org\apache\pdfbox\pdfbox-io\3.0.1\pdfbox-io-3.0.1.jar;C:\Users\ELCOT\.m2\repository\org\apache\pdfbox\fontbox\3.0.1\fontbox-3.0.1.jar;C:\Users\ELCOT\.m2\repository\commons-logging\commons-logging\1.2\commons-logging-1.2.jar;C:\Users\ELCOT\.m2\repository\org\apache\tika\tika-core\2.9.0\tika-core-2.9.0.jar;C:\Users\ELCOT\.m2\repository\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;C:\Users\ELCOT\.m2\repository\org\jsoup\jsoup\1.17.1\jsoup-1.17.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.3.0\spring-boot-starter-validation-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.1.Final\hibernate-validator-8.0.1.Final.jar;C:\Users\ELCOT\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\ELCOT\.m2\repository\org\flywaydb\flyway-core\10.10.0\flyway-core-10.10.0.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.17.1\jackson-dataformat-toml-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;C:\Users\ELCOT\.m2\repository\org\flywaydb\flyway-database-postgresql\10.10.0\flyway-database-postgresql-10.10.0.jar;C:\Users\ELCOT\.m2\repository\commons-io\commons-io\2.16.1\commons-io-2.16.1.jar;C:\Users\ELCOT\.m2\repository\commons-lang\commons-lang\2.6\commons-lang-2.6.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.17.1\jackson-databind-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.17.1\jackson-annotations-2.17.1.jar;C:\Users\ELCOT\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.17.1\jackson-core-2.17.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.3.0\spring-boot-starter-logging-3.3.0.jar;C:\Users\ELCOT\.m2\repository\ch\qos\logback\logback-classic\1.5.6\logback-classic-1.5.6.jar;C:\Users\ELCOT\.m2\repository\ch\qos\logback\logback-core\1.5.6\logback-core-1.5.6.jar;C:\Users\ELCOT\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.23.1\log4j-to-slf4j-2.23.1.jar;C:\Users\ELCOT\.m2\repository\org\apache\logging\log4j\log4j-api\2.23.1\log4j-api-2.23.1.jar;C:\Users\ELCOT\.m2\repository\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.3.0\spring-boot-starter-test-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-test\3.3.0\spring-boot-test-3.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.3.0\spring-boot-test-autoconfigure-3.3.0.jar;C:\Users\ELCOT\.m2\repository\com\jayway\jsonpath\json-path\2.9.0\json-path-2.9.0.jar;C:\Users\ELCOT\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar;C:\Users\ELCOT\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\ELCOT\.m2\repository\net\minidev\json-smart\2.5.1\json-smart-2.5.1.jar;C:\Users\ELCOT\.m2\repository\net\minidev\accessors-smart\2.5.1\accessors-smart-2.5.1.jar;C:\Users\ELCOT\.m2\repository\org\ow2\asm\asm\9.6\asm-9.6.jar;C:\Users\ELCOT\.m2\repository\org\assertj\assertj-core\3.25.3\assertj-core-3.25.3.jar;C:\Users\ELCOT\.m2\repository\org\awaitility\awaitility\4.2.1\awaitility-4.2.1.jar;C:\Users\ELCOT\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\ELCOT\.m2\repository\org\skyscreamer\jsonassert\1.5.1\jsonassert-1.5.1.jar;C:\Users\ELCOT\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-core\6.1.8\spring-core-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-jcl\6.1.8\spring-jcl-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\springframework\spring-test\6.1.8\spring-test-6.1.8.jar;C:\Users\ELCOT\.m2\repository\org\xmlunit\xmlunit-core\2.9.1\xmlunit-core-2.9.1.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-test\6.3.0\spring-security-test-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-core\6.3.0\spring-security-core-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\springframework\security\spring-security-crypto\6.3.0\spring-security-crypto-6.3.0.jar;C:\Users\ELCOT\.m2\repository\org\junit\jupiter\junit-jupiter\5.10.2\junit-jupiter-5.10.2.jar;C:\Users\ELCOT\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.10.2\junit-jupiter-api-5.10.2.jar;C:\Users\ELCOT\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\ELCOT\.m2\repository\org\junit\platform\junit-platform-commons\1.10.2\junit-platform-commons-1.10.2.jar;C:\Users\ELCOT\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\ELCOT\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.10.2\junit-jupiter-params-5.10.2.jar;C:\Users\ELCOT\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.10.2\junit-jupiter-engine-5.10.2.jar;C:\Users\ELCOT\.m2\repository\org\junit\platform\junit-platform-engine\1.10.2\junit-platform-engine-1.10.2.jar;C:\Users\ELCOT\.m2\repository\org\mockito\mockito-core\5.11.0\mockito-core-5.11.0.jar;C:\Users\ELCOT\.m2\repository\net\bytebuddy\byte-buddy\1.14.16\byte-buddy-1.14.16.jar;C:\Users\ELCOT\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.16\byte-buddy-agent-1.14.16.jar;C:\Users\ELCOT\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\ELCOT\.m2\repository\org\mockito\mockito-junit-jupiter\5.11.0\mockito-junit-jupiter-5.11.0.jar;C:\Users\ELCOT\.m2\repository\org\mockito\mockito-inline\5.2.0\mockito-inline-5.2.0.jar;C:\Users\ELCOT\.m2\repository\com\h2database\h2\2.2.224\h2-2.2.224.jar;C:\Users\ELCOT\.m2\repository\org\testcontainers\testcontainers\1.19.8\testcontainers-1.19.8.jar;C:\Users\ELCOT\.m2\repository\junit\junit\4.13.2\junit-4.13.2.jar;C:\Users\ELCOT\.m2\repository\org\hamcrest\hamcrest-core\2.2\hamcrest-core-2.2.jar;C:\Users\ELCOT\.m2\repository\org\apache\commons\commons-compress\1.24.0\commons-compress-1.24.0.jar;C:\Users\ELCOT\.m2\repository\org\rnorth\duct-tape\duct-tape\1.0.8\duct-tape-1.0.8.jar;C:\Users\ELCOT\.m2\repository\org\jetbrains\annotations\17.0.0\annotations-17.0.0.jar;C:\Users\ELCOT\.m2\repository\com\github\docker-java\docker-java-api\3.3.6\docker-java-api-3.3.6.jar;C:\Users\ELCOT\.m2\repository\com\github\docker-java\docker-java-transport-zerodep\3.3.6\docker-java-transport-zerodep-3.3.6.jar;C:\Users\ELCOT\.m2\repository\com\github\docker-java\docker-java-transport\3.3.6\docker-java-transport-3.3.6.jar;C:\Users\ELCOT\.m2\repository\net\java\dev\jna\jna\5.13.0\jna-5.13.0.jar;C:\Users\ELCOT\.m2\repository\org\testcontainers\postgresql\1.19.8\postgresql-1.19.8.jar;C:\Users\ELCOT\.m2\repository\org\testcontainers\jdbc\1.19.8\jdbc-1.19.8.jar;C:\Users\ELCOT\.m2\repository\org\testcontainers\database-commons\1.19.8\database-commons-1.19.8.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\ELCOT"/>
+    <property name="user.language" value="en"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2026-01-20"/>
+    <property name="java.home" value="C:\Users\ELCOT\AppData\Local\Programs\Eclipse Adoptium\jdk-25.0.2.10-hotspot"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO"/>
+    <property name="java.vm.compressedOopsMode" value="32-bit"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="surefire.real.class.path" value="C:\Users\ELCOT\AppData\Local\Temp\surefire11187161135241489701\surefirebooter-20261021003233971_3.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="25.0.2+10-LTS"/>
+    <property name="user.name" value="ELCOT"/>
+    <property name="stdout.encoding" value="Cp1252"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+    <property name="file.encoding" value="UTF-8"/>
+    <property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+    <property name="java.vendor.version" value="Temurin-25.0.2+10"/>
+    <property name="localRepository" value="C:\Users\ELCOT\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://github.com/adoptium/adoptium-support/issues"/>
+    <property name="java.io.tmpdir" value="C:\Users\ELCOT\AppData\Local\Temp\"/>
+    <property name="java.version" value="25.0.2"/>
+    <property name="user.dir" value="C:\Users\ELCOT\Desktop\Advance_JAVA\ISRO"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="native.encoding" value="Cp1252"/>
+    <property name="java.library.path" value="C:\Users\ELCOT\AppData\Local\Programs\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin;C:\windows\Sun\Java\bin;C:\windows\system32;C:\windows;C:/Users/ELCOT/.gemini/antigravity-ide/bin;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\Program Files\Git\cmd;C:\Program Files\nodejs;C:\msys64\ucrt64\bin;C:\Program Files\Docker\Docker\resources\bin;C:\Users\ELCOT\Desktop\wallpaper\apache-maven-3.9.14-bin\apache-maven-3.9.14\bin;C:\Program Files\k6;C:\Users\ELCOT\AppData\Local\Programs\OpenAI\Codex\bin;C:\Users\ELCOT\.local\bin;C:\Users\ELCOT\AppData\Local\Programs\Python\Python314\Scripts\;C:\Users\ELCOT\AppData\Local\Programs\Python\Python314\;C:\Users\ELCOT\AppData\Local\Programs\Python\Launcher\;C:\Users\ELCOT\AppData\Local\Programs\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin;C:\Users\ELCOT\AppData\Local\Microsoft\WindowsApps;C:\Users\ELCOT\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\ELCOT\AppData\Roaming\npm;C:\msys64\ucrt64\bin;C:\Users\ELCOT\AppData\Local\Microsoft\WinGet\Packages\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\ELCOT\AppData\Local\Microsoft\WinGet\Packages\AlDanial.Cloc_Microsoft.Winget.Source_8wekyb3d8bbwe;;C:\Users\ELCOT\AppData\Local\Microsoft\WinGet\Packages\AlDanial.Cloc_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Users\ELCOT\AppData\Local\Microsoft\WinGet\Packages\AlDanial.Cloc_Microsoft.Winget.Source_8wekyb3d8bbwe;C:\Program Files\k6;C:\Users\ELCOT\AppData\Local\Programs\Ollama;C:\Users\ELCOT\AppData\Local\Programs\Antigravity IDE\bin;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="stderr.encoding" value="Cp1252"/>
+    <property name="java.vendor" value="Eclipse Adoptium"/>
+    <property name="java.vm.version" value="25.0.2+10-LTS"/>
+    <property name="stdin.encoding" value="Cp1252"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="69.0"/>
+  </properties>
+  <testcase name="testExtractTextFromCorruptedPdf" classname="com.spacedoc.service.TextExtractionServiceTest" time="0.49">
+    <system-out><![CDATA[Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+00:32:35.878 [main] ERROR com.spacedoc.service.TextExtractionService -- Error parsing PDF document
+java.io.IOException: Error: End-of-File, expected line at offset 40
+	at org.apache.pdfbox.pdfparser.BaseParser.readLine(BaseParser.java:1092)
+	at org.apache.pdfbox.pdfparser.COSParser.parseHeader(COSParser.java:1609)
+	at org.apache.pdfbox.pdfparser.COSParser.parsePDFHeader(COSParser.java:1588)
+	at org.apache.pdfbox.pdfparser.PDFParser.parse(PDFParser.java:157)
+	at org.apache.pdfbox.pdfparser.PDFParser.parse(PDFParser.java:136)
+	at org.apache.pdfbox.Loader.loadPDF(Loader.java:466)
+	at org.apache.pdfbox.Loader.loadPDF(Loader.java:369)
+	at com.spacedoc.service.TextExtractionService.extractText(TextExtractionService.java:46)
+	at com.spacedoc.service.TextExtractionServiceTest.lambda$testExtractTextFromCorruptedPdf$0(TextExtractionServiceTest.java:93)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:53)
+	at org.junit.jupiter.api.AssertThrows.assertThrows(AssertThrows.java:35)
+	at org.junit.jupiter.api.Assertions.assertThrows(Assertions.java:3115)
+	at com.spacedoc.service.TextExtractionServiceTest.testExtractTextFromCorruptedPdf(TextExtractionServiceTest.java:92)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]></system-out>
+  </testcase>
+  <testcase name="testExtractTextFromNullStream" classname="com.spacedoc.service.TextExtractionServiceTest" time="0.006"/>
+  <testcase name="testExtractTextGeneric" classname="com.spacedoc.service.TextExtractionServiceTest" time="17.237">
+    <system-out><![CDATA[00:32:35.960 [main] ERROR com.spacedoc.service.TextExtractionService -- Error parsing PDF document
+java.io.IOException: Error: End-of-File, expected line at offset 39
+	at org.apache.pdfbox.pdfparser.BaseParser.readLine(BaseParser.java:1092)
+	at org.apache.pdfbox.pdfparser.COSParser.parseHeader(COSParser.java:1609)
+	at org.apache.pdfbox.pdfparser.COSParser.parsePDFHeader(COSParser.java:1588)
+	at org.apache.pdfbox.pdfparser.PDFParser.parse(PDFParser.java:157)
+	at org.apache.pdfbox.pdfparser.PDFParser.parse(PDFParser.java:136)
+	at org.apache.pdfbox.Loader.loadPDF(Loader.java:466)
+	at org.apache.pdfbox.Loader.loadPDF(Loader.java:369)
+	at com.spacedoc.service.TextExtractionService.extractText(TextExtractionService.java:46)
+	at com.spacedoc.service.TextExtractionService.extractTextGeneric(TextExtractionService.java:136)
+	at com.spacedoc.service.TextExtractionServiceTest.testExtractTextGeneric(TextExtractionServiceTest.java:115)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+00:32:36.804 [main] WARN org.apache.pdfbox.pdmodel.font.FileSystemFontProvider -- 522 new fonts found, font cache will be re-built
+00:32:36.805 [main] WARN org.apache.pdfbox.pdmodel.font.FileSystemFontProvider -- Building on-disk font cache, this may take a while
+00:32:37.900 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 3 but should be 1
+00:32:37.929 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 3 but should be 1
+00:32:37.970 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 3 but should be 1
+00:32:38.334 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:44.229 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:44.545 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:44.572 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:44.639 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:44.683 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:44.717 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:48.852 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 108 but should be 1
+00:32:48.852 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 112 but should be 1
+00:32:48.852 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 116 but should be 1
+00:32:48.878 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 108 but should be 1
+00:32:48.879 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 112 but should be 1
+00:32:48.879 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 116 but should be 1
+00:32:48.897 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 108 but should be 1
+00:32:48.898 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 112 but should be 1
+00:32:48.898 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 116 but should be 1
+00:32:48.916 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 108 but should be 1
+00:32:48.917 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 112 but should be 1
+00:32:48.917 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 116 but should be 1
+00:32:48.935 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 108 but should be 1
+00:32:48.936 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 112 but should be 1
+00:32:48.936 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 116 but should be 1
+00:32:48.952 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 108 but should be 1
+00:32:48.952 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 112 but should be 1
+00:32:48.952 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 116 but should be 1
+00:32:50.332 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:50.343 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:50.424 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:50.627 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.628 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.628 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.628 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.628 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.628 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.629 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.629 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.629 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.629 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.629 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.629 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.629 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.629 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:50.869 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.204 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.206 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.251 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.305 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.407 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.409 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.453 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.560 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.562 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.613 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.697 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.699 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.742 [main] WARN org.apache.fontbox.ttf.CmapSubtable -- Format 14 cmap table is not supported and will be ignored
+00:32:52.789 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.789 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.789 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.789 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.814 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.815 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.815 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.815 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.828 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.830 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.830 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.830 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.832 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.833 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.833 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.833 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.837 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.837 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.837 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.837 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.881 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.881 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.882 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.882 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.884 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.884 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.884 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.884 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.887 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.887 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.887 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.887 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.890 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.890 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.890 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.890 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.892 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.893 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.893 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.893 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.895 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.896 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.896 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.896 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.899 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.899 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.899 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.899 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.902 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.902 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.902 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.902 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.906 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.906 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.906 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.906 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.910 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.910 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.910 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.910 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.914 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.914 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.914 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.914 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.920 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.921 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.921 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.921 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.924 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.924 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.924 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.924 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.927 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.928 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.928 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.928 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.931 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.931 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.931 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.931 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.933 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.935 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.935 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.935 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.941 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.942 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.942 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.942 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.944 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.944 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.944 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.944 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.947 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.947 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.947 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.947 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.949 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.949 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.949 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.949 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.952 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.952 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.952 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.952 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.954 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.954 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.954 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.954 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.956 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.957 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.957 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.957 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.959 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.959 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.959 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:52.959 [main] ERROR org.apache.fontbox.ttf.GlyphSubstitutionTable -- The expected SubstFormat for ExtensionSubstFormat1 subtable is 7 but should be 1
+00:32:53.016 [main] WARN org.apache.pdfbox.pdmodel.font.FileSystemFontProvider -- Finished building on-disk font cache, found 545 fonts
+00:32:53.186 [main] INFO com.spacedoc.service.TextExtractionService -- Extracted 31 characters from PDF (1 pages)
+]]></system-out>
+  </testcase>
+  <testcase name="testExtractTextFromEmptyStream" classname="com.spacedoc.service.TextExtractionServiceTest" time="0.005"/>
+  <testcase name="testExtractTextFromBlankOrScannedPdf" classname="com.spacedoc.service.TextExtractionServiceTest" time="0.01">
+    <system-out><![CDATA[00:32:53.210 [main] WARN com.spacedoc.service.TextExtractionService -- Extracted 0 characters from PDF across 1 page(s). Document appears scanned or image-only.
+]]></system-out>
+  </testcase>
+  <testcase name="testExtractTextFromValidPdf" classname="com.spacedoc.service.TextExtractionServiceTest" time="0.013">
+    <system-out><![CDATA[00:32:53.225 [main] INFO com.spacedoc.service.TextExtractionService -- Extracted 47 characters from PDF (1 pages)
+]]></system-out>
+  </testcase>
+</testsuite>
