@@ -20,13 +20,13 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:postgresql://localhost:5432/spacedoc",
-    "spring.datasource.username=spacedoc",
-    "spring.datasource.password=spacedoc_local_dev_password",
-    "spring.datasource.driver-class-name=org.postgresql.Driver",
-    "spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect",
-    "spring.jpa.hibernate.ddl-auto=validate",
-    "spring.flyway.enabled=true"
+    "spring.datasource.url=jdbc:h2:mem:securitytestdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+    "spring.datasource.driver-class-name=org.h2.Driver",
+    "spring.datasource.username=sa",
+    "spring.datasource.password=",
+    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
+    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.flyway.enabled=false"
 })
 @DisplayName("Security & CSRF Login Integration Tests")
 public class SecurityIntegrationTest {

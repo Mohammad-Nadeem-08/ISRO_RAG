@@ -417,6 +417,158 @@ class AnswerGenerationServiceTest {
             "Mock mode should report generation method as 'llm'");
     }
 
+    // ============ Regression Tests for Enhanced Grounding & Relevance ============
+
+    @Test
+    @DisplayName("Regression: Spacecraft vs Launch Vehicle distinction and abstention")
+    void testSpacecraftVsLaunchVehicleDistinctionAndAbstention() {
+        // Query asks about Chandrayaan-3 (spacecraft) propulsion
+        String query = "What is Chandrayaan-3's propulsion system?";
+
+        // Retrieved evidence describes only LVM3 CE-20 cryogenic engine
+        List<RetrievalResultDTO> evidence = new ArrayList<>();
+        evidence.add(createTestChunk(68L, 100L,
+            "The CE-20 is an indigenous cryogenic rocket engine developed by ISRO for the LVM3 launch vehicle upper stage. " +
+            "It operates on a gas-generator cycle using liquid oxygen (LOX) and liquid hydrogen (LH2) propellants, producing 200 kN nominal thrust.",
+            "CE-20 Engine Specifications", 0.75f));
+        evidence.add(createTestChunk(67L, 100L,
+            "ISRO Cryogenic Upper Stage CUS technical characteristics and propellant loading protocols.",
+            "Cryogenic Upper Stage", 0.60f));
+
+        // Act
+        AnswerGenerationService.GeneratedAnswer answer = answerGenerationService.generateAnswer(query, evidence);
+
+        // Assert
+        assertNotNull(answer);
+        String text = answer.getAnswerText();
+        assertNotNull(text);
+        // Must explicitly distinguish launch vehicle from spacecraft
+        assertTrue(text.toLowerCase().contains("launch vehicle") || text.toLowerCase().contains("ce-20"),
+            "Answer must distinguish launch vehicle / CE-20 from the spacecraft");
+        // Must state that evidence is insufficient to establish spacecraft's propulsion
+        assertTrue(answerGenerationService.isInsufficientEvidenceAnswer(text) || text.toLowerCase().contains("insufficient"),
+            "Answer must state that available evidence is insufficient to establish Chandrayaan-3's propulsion system");
+        // Confidence must be calibrated to 0.0 for abstention / insufficient evidence
+        assertEquals(0.0f, answer.getConfidence(),
+            "Confidence must be calibrated to 0.0 when evidence does not establish the requested fact");
+    }
+
+    @Test
+    @DisplayName("Regression: Topically related but non-answering evidence triggers abstention")
+    void testTopicallyRelatedNonAnsweringEvidenceAbstention() {
+        String query = "What cryptographic standards are mandated for S-band telemetry downlink?";
+
+        // Evidence mentions S-band telemetry and frequency, but does NOT answer cryptographic standards
+        List<RetrievalResultDTO> evidence = new ArrayList<>();
+        evidence.add(createTestChunk(10L, 101L,
+            "S-band telemetry downlink operates at 2200-2290 MHz for deep space tracking stations.",
+            "Telemetry Specifications", 0.70f));
+
+        AnswerGenerationService.GeneratedAnswer answer = answerGenerationService.generateAnswer(query, evidence);
+
+        assertNotNull(answer);
+        assertTrue(answerGenerationService.isInsufficientEvidenceAnswer(answer.getAnswerText()),
+            "Topically related non-answering evidence must trigger explicit abstention");
+        assertEquals(0.0f, answer.getConfidence(),
+            "Confidence must be 0.0 when evidence is insufficient");
+    }
+
+    @Test
+    @DisplayName("Regression: Insufficient evidence produces appropriate abstention with zero confidence")
+    void testInsufficientEvidenceAndAppropriateAbstention() {
+        String query = "What is the battery chemistry of the Vikram lander?";
+
+        List<RetrievalResultDTO> evidence = new ArrayList<>();
+        evidence.add(createTestChunk(1L, 100L,
+            "The CE-20 operates on LOX and LH2 cryogenic propellants.",
+            "Propellants", 0.40f));
+
+        AnswerGenerationService.GeneratedAnswer answer = answerGenerationService.generateAnswer(query, evidence);
+
+        assertNotNull(answer);
+        assertTrue(answerGenerationService.isInsufficientEvidenceAnswer(answer.getAnswerText()));
+        assertEquals(0.0f, answer.getConfidence());
+    }
+
+    @Test
+    @DisplayName("Regression: Citation references that do not exist are rejected")
+    void testNonExistentCitationReferencesRejected() {
+        // Evidence has only 2 items
+        List<RetrievalResultDTO> evidence = new ArrayList<>();
+        evidence.add(createTestChunk(1L, 100L, "The CE-20 is a cryogenic engine.", "Introduction", 0.9f));
+        evidence.add(createTestChunk(2L, 100L, "Propellants are LOX and LH2.", "Specifications", 0.85f));
+
+        // Model hallucinates [Source 99] and [Source 0] along with valid [Source 1]
+        String modelOutput = "The CE-20 is a cryogenic engine [Source 1]. It was also tested on a fictional test stand [Source 99] and [Source 0].";
+
+        List<String> invalidCitations = new ArrayList<>();
+        List<AnswerGenerationService.Citation> citations = answerGenerationService.extractCitations(modelOutput, evidence, invalidCitations);
+
+        // Verify only valid chunk was extracted
+        assertEquals(1, citations.size(), "Only valid source numbers within 1..size should be extracted");
+        assertEquals(1, citations.get(0).getSourceNumber());
+        assertEquals(1L, citations.get(0).getChunkId());
+
+        // Verify invalid citations were recorded
+        assertTrue(invalidCitations.contains("[Source 99]"), "Source 99 must be recorded as invalid");
+    }
+
+    @Test
+    @DisplayName("Regression: Valid citation whose underlying chunk does not support the claim is detected")
+    void testValidCitationWithUnsupportedClaimDetected() {
+        // Evidence chunk describes CE-20 cryogenic engine
+        RetrievalResultDTO chunk = createTestChunk(1L, 100L,
+            "The CE-20 is an indigenous cryogenic rocket engine developed by ISRO for the LVM3 launch vehicle upper stage using LOX and LH2.",
+            "CE-20 Engine", 0.9f);
+        List<RetrievalResultDTO> evidence = List.of(chunk);
+
+        // Answer claims lander uses solid fuel hypergolic motors (completely unsupported by chunk)
+        String unsupportedClaimSentence = "Chandrayaan-3 lander utilizes solid fuel hypergolic descent thrusters [Source 1].";
+
+        // Claim support validation should detect the mismatch
+        boolean supported = answerGenerationService.validateClaimSupport(unsupportedClaimSentence, chunk.getContent());
+        assertFalse(supported, "Chunk about CE-20 cryogenic engine must not support solid fuel hypergolic descent claim");
+
+        // When extracted, citation must have claimSupported = false
+        List<AnswerGenerationService.Citation> citations = answerGenerationService.extractCitations(unsupportedClaimSentence, evidence);
+        assertEquals(1, citations.size());
+        assertFalse(citations.get(0).getClaimSupported(), "Citation must reflect that claim is unsupported");
+
+        // Calibrated confidence must be 0.0 for unsupported citations
+        Float confidence = answerGenerationService.computeConfidence(unsupportedClaimSentence, citations, evidence.size());
+        assertEquals(0.0f, confidence, "Unsupported claim must produce 0.0 confidence");
+    }
+
+    @Test
+    @DisplayName("Regression: Preservation of revision-aware retrieval and routing behavior")
+    void testPreservationOfRevisionAwareRetrievalAndRouting() {
+        // Create revision comparison service and conflict detection service
+        RevisionComparisonService revComp = new RevisionComparisonService(null);
+        ConflictDetectionService conflictService = new ConflictDetectionService();
+        EvidenceRoutingService routingService = new EvidenceRoutingService(revComp, conflictService);
+
+        // Create target revision
+        com.spacedoc.entity.DocumentRevision targetRev = new com.spacedoc.entity.DocumentRevision();
+        targetRev.setId(102L);
+        targetRev.setRevisionNumber(2);
+
+        // Create evidence from both revision 101 and target revision 102
+        List<RetrievalResultDTO> evidence = new ArrayList<>();
+        evidence.add(createTestChunk(1L, 101L, "CE-20 nominal thrust is 190 kN in preliminary revision.", "Thrust", 0.80f));
+        evidence.add(createTestChunk(2L, 102L, "CE-20 nominal thrust uprated to 200 kN in production revision.", "Thrust", 0.95f));
+
+        EvidenceRoutingService.RoutedEvidenceSet routed = routingService.routeEvidenceByRevision(
+            "What is CE-20 thrust?", evidence, targetRev
+        );
+
+        assertNotNull(routed);
+        assertEquals(2, routed.getTotalEvidenceCount());
+        assertTrue(routed.getApplicableEvidenceCount() > 0);
+        assertNotNull(routed.getRoutedEvidence());
+        // Verify applicability scores were computed
+        assertTrue(routed.getRoutedEvidence().stream().allMatch(e -> e.getApplicabilityScore() != null));
+    }
+
     // ============ Helper Methods ============
 
     private void log(String message, Object... args) {

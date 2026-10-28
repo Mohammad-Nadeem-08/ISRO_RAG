@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS document_chunks (
 
 CREATE INDEX idx_chunks_revision ON document_chunks(document_revision_id);
 CREATE INDEX idx_chunks_page ON document_chunks(page_number);
-CREATE INDEX idx_chunks_embedding ON document_chunks USING ivfflat (embedding vector_cosine_ops);
+CREATE INDEX idx_chunks_embedding ON document_chunks USING hnsw (embedding vector_cosine_ops);
 
 -- Ingestion jobs table
 CREATE TABLE IF NOT EXISTS ingestion_jobs (
@@ -340,4 +340,4 @@ CREATE TABLE IF NOT EXISTS retrieval_policy_versions (
 
 CREATE INDEX idx_policy_name ON retrieval_policy_versions(policy_name);
 
-COMMIT;
+

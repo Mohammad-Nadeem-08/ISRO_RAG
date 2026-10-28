@@ -1,329 +1,371 @@
-# SpaceDoc Intelligence
+# SpaceDoc Intelligence: ISRO Technical Document RAG
 
-A research-driven RAG (Retrieval-Augmented Generation) platform for ISRO-related technical and scientific documents, with a focus on **revision-aware evidence routing and consistency control**.
+SpaceDoc Intelligence is a research-driven, production-grade Retrieval-Augmented Generation (RAG) platform designed for technical, mission-critical, and scientific documents. It implements **revision-aware evidence routing**, **hybrid retrieval (dense vector + lexical FTS)**, **subject-predicate relationship reranking**, **grounded citation verification**, and **conflict detection** across document iterations.
 
-## Project Vision
+---
 
-SpaceDoc Intelligence enables researchers and engineers to:
+## Architecture Overview
 
-1. Search and explore official space research documents with evidence-backed retrieval
-2. Ask technical questions and receive answers grounded in indexed documents
-3. Inspect citations, page numbers, excerpts, and source provenance
-4. Compare multiple document revisions and track changes
-5. Discover contradictions between technical statements
-6. Analyze impact when documents change
-7. Explore relationships between missions, requirements, and documents
-8. Evaluate retrieval quality and answer grounding
-9. Inspect how the RAG pipeline selected evidence
-10. Reproduce and compare retrieval experiments
+SpaceDoc Intelligence combines a local, privacy-preserving embedding pipeline with Groq Cloud's ultra-low-latency LPU inference for factual, hallucination-resistant answer generation.
 
-## Research Contribution Hypothesis
+### System Architecture
 
-**Revision-Aware Evidence Routing and Consistency Control for Technical Document RAG**
-
-This investigates whether a query-conditioned, revision-aware evidence-routing controller can improve evidence selection and answer reliability by:
-
-- Combining query intent, document revision metadata, and dependency relationships
-- Detecting and managing conflicting evidence
-- Applying revision applicability checks
-- Expanding retrieval through traceable document dependencies
-- Implementing evidence-gated generation with explicit uncertainty handling
-
-## Technology Stack
-
-| Component | Technology |
-|-----------|-----------|
-| **Language** | Java 21 LTS |
-| **Framework** | Spring Boot 3.x |
-| **Frontend** | JSP, HTML5, CSS3, Vanilla JavaScript |
-| **Database** | PostgreSQL 16+ with pgvector |
-| **Build** | Maven |
-| **Testing** | JUnit 5, Mockito |
-| **AI Runtime** | Ollama (local) or compatible hosted provider |
-| **Deployment** | Docker Compose, WAR on Tomcat |
-
-## Architecture
-
+```mermaid
+graph TD
+    User([User / Browser]) <--> UI[Spring Boot JSP MVC / REST Controllers]
+    
+    subgraph Core Platform
+        UI <--> SEC[Spring Security & CSRF Protection]
+        SEC <--> RS[RetrievalService]
+        SEC <--> DIS[DocumentIngestionService]
+        SEC <--> AGS[AnswerGenerationService]
+        
+        DIS --> CS[ChunkingService]
+        DIS --> TES[TextExtractionService]
+        DIS --> ES[EmbeddingService]
+        
+        RS --> PG[(PostgreSQL 16 + pgvector)]
+        RS --> ES
+        RS --> DGS[DependencyGraphService]
+        RS --> CDS[ConflictDetectionService]
+        RS --> ERS[EvidenceRoutingService]
+    end
+    
+    subgraph AI Engine & Storage
+        ES <-->|HTTP IPv4 / 127.0.0.1:11434| Ollama[Ollama: nomic-embed-text<br/>768-dim embeddings]
+        AGS <-->|HTTPS REST API| Groq[Groq Cloud API<br/>openai/gpt-oss-120b]
+        PG --- HNSW[HNSW Vector Index & tsvector FTS]
+    end
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (JSP/HTML/JS)                    │
-├─────────────────────────────────────────────────────────────┤
-│  Dashboard │ Research Assistant │ Library │ Ingestion │
-│  Impact Mapper │ Evaluation Lab │ Document Detail           │
-├─────────────────────────────────────────────────────────────┤
-│              REST API Controllers & Security               │
-├──────────────┬──────────────────────────────────┬───────────┤
-│ Ingestion    │ RAG Pipeline                     │ Analysis  │
-│ Service      ├──────────────────────────────────┤ Service   │
-│              │ Evidence Routing (Core Research) │           │
-│ • Parsing    │ • Query Planning                 │ • Impact  │
-│ • Extraction │ • Dense Retrieval                │ • Graph   │
-│ • Chunking   │ • Lexical Retrieval              │ • Impact  │
-│ • Embedding  │ • Hybrid Ranking                 │           │
-│              │ • Dependency Expansion           │           │
-│              │ • Conflict Detection             │           │
-│              │ • Evidence Convergence           │           │
-│              │ • Evidence-Gated Generation      │           │
-│              │ • Citation Verification          │           │
-├──────────────┴──────────────────────────────────┴───────────┤
-│ Repository Layer (Spring Data JPA, JDBC)                    │
-├──────────────────────────────────────────────────────────────┤
-│ PostgreSQL (pgvector, Full-Text Search, Migrations)         │
-└──────────────────────────────────────────────────────────────┘
+
+---
+
+## Core Retrieval & RAG Workflows
+
+### 1. Document Ingestion Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Engineer / Admin
+    participant Ingest as IngestionController
+    participant Svc as DocumentIngestionService
+    participant Text as TextExtractionService
+    participant Chunk as ChunkingService
+    participant Embed as EmbeddingService (Ollama)
+    participant DB as PostgreSQL (pgvector)
+
+    Admin->>Ingest: Upload PDF / Document
+    Ingest->>Svc: Process Ingestion Job
+    Svc->>Text: Extract clean text & section metadata
+    Text-->>Svc: Extracted plain text
+    Svc->>Chunk: Chunk text (512 tokens, 128 overlap)
+    Chunk-->>Svc: DocumentChunk list
+    Svc->>Embed: Generate 768-dim embeddings for chunks
+    Embed->>Embed: Call Ollama (nomic-embed-text)
+    Embed-->>Svc: Dense float vector arrays
+    Svc->>DB: Save Document, Revisions, and Chunks (HNSW index)
+    DB-->>Svc: Transaction committed
+    Svc-->>Ingest: Ingestion Success (Job Completed)
 ```
+
+### 2. RAG Question Answering Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Researcher
+    participant Ctrl as RetrievalController
+    participant Ret as RetrievalService
+    participant Route as EvidenceRoutingService
+    participant Gen as AnswerGenerationService (Groq)
+    participant DB as PostgreSQL
+
+    User->>Ctrl: Submit Technical Query
+    Ctrl->>Ret: Execute Hybrid Search (Query, Top-K)
+    Ret->>DB: Lexical Search (tsvector full-text match)
+    Ret->>DB: Dense Search (cosine distance via pgvector HNSW)
+    DB-->>Ret: Candidate Chunks
+    Ret->>Ret: Reciprocal Rank Fusion (RRF k=60)
+    Ret->>Ret: Subject-Predicate Relationship Rerank
+    Ret->>Route: Filter Applicability & Check Revision Conflicts
+    Route-->>Ret: Routed Evidence Set
+    Ret-->>Ctrl: Validated Candidate Evidence
+    Ctrl->>Gen: Generate Grounded Answer (Query, Evidence)
+    Gen->>Gen: Construct Grounding Prompt with Negative Constraints
+    Gen->>Gen: Call Groq API (openai/gpt-oss-120b)
+    Gen->>Gen: Validate Claim Support & Verify Inline Citations
+    Gen->>Gen: Calibrate Confidence Score (0.0 - 1.0)
+    Gen-->>Ctrl: Answer with Inline Citations & Confidence
+    Ctrl-->>User: Rendered Response with Source Cards
+```
+
+---
+
+## Technology Stack & Component Roles
+
+| Layer / Technology | Component | Exact Role in SpaceDoc Intelligence |
+|---|---|---|
+| **Language & Framework** | Java 21+ / Spring Boot 3.3.0 | Core backend platform, dependency injection, REST endpoints, transaction management. |
+| **Packaging** | Apache Maven (WAR packaging) | Build automation, dependency management, and deployable WAR artifact creation. |
+| **Presentation Layer** | JSP, JSTL, Bootstrap, Vanilla JS | Interactive web UI for search, research assistant, document upload, and impact visualization. |
+| **Relational & Vector DB** | PostgreSQL 16 + `pgvector 0.8.x` | Relational document metadata, full-text search (`tsvector`), and 768-dim vector cosine similarity with HNSW indexing. |
+| **Database Migrations** | Flyway | Versioned SQL migrations (`V1__initial_schema.sql`, `V2__update_vector_dimension_768.sql`). |
+| **Local Vector AI** | Ollama (`nomic-embed-text`) | Private local embedding generation (768 dimensions) over IPv4 (`127.0.0.1:11434`). |
+| **Cloud Generation AI** | Groq Cloud API | High-speed LPU inference engine running `openai/gpt-oss-120b` for factual, grounded technical answer generation. |
+| **Security Layer** | Spring Security 6 | Role-based authentication, CSRF token validation, HTTP-only secure cookie sessions. |
+| **Automated Testing** | JUnit 5 & Mockito | 95 regression tests covering ingestion, chunking, retrieval, routing, conflict detection, and answer generation. |
+
+---
 
 ## Package Structure
 
 ```
 com.spacedoc
-├── config/               # Spring configuration, security
-├── controller/           # MVC controllers for JSP views
-├── rest/                 # REST API endpoints
-├── service/              # Business logic orchestration
-├── repository/           # Spring Data JPA & JDBC
-├── entity/               # JPA entities
-├── dto/                  # Data transfer objects
-├── security/             # Authentication, authorization
-├── ingestion/            # Document intake pipeline
-├── parsing/              # Text extraction and normalization
-├── chunking/             # Document segmentation
-├── embedding/            # Embedding generation
-├── retrieval/            # Dense, lexical, hybrid search
-├── reranking/            # Optional reranking layer
-├── routing/              # Evidence routing controller (RESEARCH)
-├── generation/           # Answer generation with gating
-├── verification/         # Citation and evidence validation
-├── citation/             # Citation mapping and resolution
-├── impact/               # Impact analysis and document relationships
-├── evaluation/           # Evaluation framework and metrics
-├── graph/                # Technical evidence graph operations
-├── exception/            # Custom exceptions
-└── util/                 # Utilities
+├── SpaceDocIntelligenceApplication.java   # Spring Boot entry point (SpringBootServletInitializer)
+├── config/
+│   ├── SecurityConfiguration.java         # Spring Security, CSRF, and session filters
+│   └── VectorUserType.java                # Hibernate custom user type for pgvector
+├── controller/
+│   └── PageController.java                # MVC view controller routing to JSP templates
+├── dto/
+│   ├── DocumentDTO.java                   # Document metadata transfer
+│   ├── ImpactAnalysisDTO.java             # Impacted document and dependency payload
+│   ├── IngestionRequestDTO.java           # Document upload request data
+│   ├── IngestionResponseDTO.java          # Ingestion status and summary
+│   ├── QueryRequestDTO.java               # Question answering query parameters
+│   └── RetrievalResultDTO.java            # Ranked evidence chunk with score and provenance
+├── entity/
+│   ├── Document.java                      # JPA entity for technical documents
+│   ├── DocumentChunk.java                 # Text chunks with 768-dim vector embeddings
+│   ├── DocumentRelationship.java          # Graph edge (DEPENDS_ON, SUPERSEDES, etc.)
+│   ├── DocumentRevision.java              # Document revisions and change tracking
+│   ├── IngestionJob.java                  # Asynchronous ingestion job records
+│   ├── Requirement.java                   # Extracted engineering requirements
+│   └── TechnicalEntity.java               # Extracted mission systems and components
+├── exception/
+│   ├── GroqException.java                 # Groq API client exceptions
+│   ├── IngestionException.java            # Document ingestion and parsing errors
+│   └── SpaceDocException.java             # Base system runtime exception
+├── repository/
+│   ├── DocumentChunkRepository.java       # Native SQL for pgvector HNSW and tsvector FTS
+│   ├── DocumentRepository.java            # Document metadata queries
+│   ├── DocumentRevisionRepository.java    # Revision history and status queries
+│   └── IngestionJobRepository.java        # Background job status queries
+├── rest/
+│   ├── DocumentController.java            # Document CRUD and metadata API
+│   ├── ImpactAnalysisController.java      # Dependency impact analysis API
+│   ├── IngestionController.java           # PDF / text ingestion endpoints
+│   ├── RetrievalController.java           # Hybrid search & question-answering API
+│   └── SystemHealthController.java        # Health check and dependency status endpoint
+└── service/
+    ├── AnswerGenerationService.java       # Groq client, prompt engineering, citation validation
+    ├── ChunkingService.java               # Sliding-window token-based document segmenter
+    ├── ConflictDetectionService.java      # Contradiction detection across revisions
+    ├── DependencyGraphService.java        # Graph traversal across technical requirements
+    ├── DocumentIngestionService.java      # Pipeline orchestrator for uploaded documents
+    ├── EmbeddingService.java              # Ollama client with IPv4 normalization
+    ├── EvaluationService.java             # RAG evaluation runner (MRR, precision, validity)
+    ├── EvidenceRoutingService.java        # Revision-aware routing controller
+    ├── ImpactAnalysisService.java         # Downstream change impact analyzer
+    ├── RetrievalService.java              # Hybrid search & subject-predicate reranker
+    ├── RevisionComparisonService.java     # Deterministic text comparison across versions
+    └── TextExtractionService.java         # Apache Tika/PDF text extraction
 ```
-
-## Getting Started
-
-### Prerequisites
-
-- Java 21 LTS
-- Maven 3.8+
-- PostgreSQL 16+ with pgvector extension
-- Docker and Docker Compose (optional, for containerization)
-- Ollama (optional, for local model runtime)
-
-### Quick Start
-
-1. **Clone and navigate:**
-   ```bash
-   cd /path/to/spacedoc
-   ```
-
-2. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your local PostgreSQL and Ollama URLs
-   ```
-
-3. **Start services:**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Build and run:**
-   ```bash
-   mvn clean install
-   mvn spring-boot:run
-   ```
-
-5. **Access application:**
-   ```
-   http://localhost:8080
-   ```
-
-## Core Pipeline: Revision-Aware Evidence Routing
-
-### Stage 1: Provenance-Aware Document Ingestion
-- Accept PDFs, URLs, and metadata
-- Extract and normalize text
-- Preserve page and section references
-- Generate stable document and revision IDs
-- Store content hashes for change detection
-
-### Stage 2: Revision and Evidence Fingerprinting
-- Compare revisions using deterministic text comparison
-- Detect added, removed, and modified passages
-- Extract requirement and entity references
-- Maintain historical evidence
-
-### Stage 3: Technical Evidence Graph
-- Store documents, revisions, sections, requirements, and entities
-- Track explicit relationships (REFERENCES, DESCRIBES, DEPENDS_ON, SUPERSEDES, CONTRADICTS)
-- Distinguish explicit from inferred relationships
-- Maintain relationship provenance
-
-### Stage 4: Query-Conditioned Retrieval Planning
-- Analyze query intent and required revision
-- Choose appropriate retrieval plan (dense, lexical, hybrid, dependency-guided)
-- Record routing decisions and reasons
-- Avoid unnecessary retrieval stages
-
-### Stage 5: Hybrid Retrieval
-- Vector search with pgvector
-- Lexical search with PostgreSQL full-text
-- Combine rankings using Reciprocal Rank Fusion
-- Support configurable filters and thresholds
-
-### Stage 6: Dependency-Guided Evidence Expansion
-- Traverse technical evidence graph
-- Apply traversal depth and result limits
-- Prefer explicit dependencies over inferred
-- Maintain expansion reasons
-
-### Stage 7: Evidence Convergence and Conflict Analysis
-- Combine retrieved candidates
-- Evaluate relevance, provenance, and applicability
-- Detect conflicting statements
-- Preserve both statements and provenance
-
-### Stage 8: Evidence-Gated Generation
-- Generate answers only from selected evidence
-- Use explicit evidence references
-- Avoid invented specifications
-- Identify contradictions
-- State when information is missing
-
-### Stage 9: Feedback and Policy Refinement
-- Collect authorized reviewer feedback
-- Create evaluation datasets
-- Optionally tune retrieval parameters
-- Require regression testing before deployment
-
-## Document Impact Analysis
-
-When a document revision changes:
-
-1. Identify changed sections, requirements, and entities
-2. Find documents that explicitly reference the changed content
-3. Find traceable related evidence through dependency graph
-4. Apply revision applicability checks
-5. Rank candidate impacted documents with explanations
-6. Allow reviewer to confirm, reject, or investigate
-
-## User Interface
-
-### Pages
-
-| Page | Purpose |
-|------|---------|
-| **Dashboard** | Metrics, recent activity, system health |
-| **Research Assistant** | Conversational Q&A with evidence inspection |
-| **Document Library** | Search, filter, pagination, metadata, revisions |
-| **Ingestion Centre** | Upload, URL submission, job status, duplicates |
-| **Impact Mapper** | Revision comparison, relationships, impact analysis |
-| **Evaluation Lab** | Experiment history, metrics, ablation results |
-| **Document Detail** | Metadata, chunks, provenance, relationships |
-
-### Design Aesthetic
-
-- Dark navy and neutral surfaces
-- Readable typography with accessible contrast
-- Responsive layouts
-- Clean data visualization
-- Scientific, restrained design
-
-## REST API
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/dashboard` | GET | Metrics and recent activity |
-| `/api/documents` | GET | Document list |
-| `/api/documents/{id}` | GET | Document detail |
-| `/api/documents/{id}/revisions` | GET | Revision history |
-| `/api/ingestion/upload` | POST | PDF upload |
-| `/api/ingestion/url` | POST | URL submission |
-| `/api/ingestion/jobs/{id}` | GET | Job status |
-| `/api/rag/ask` | POST | Query with evidence routing |
-| `/api/conversations` | GET | Conversation list |
-| `/api/conversations/{id}/messages` | GET | Message history |
-| `/api/impact/analyze` | POST | Impact analysis |
-| `/api/impact/{id}` | GET | Impact result |
-| `/api/documents/{id}/relationships` | GET | Document graph |
-| `/api/evaluation/run` | POST | Start evaluation |
-| `/api/evaluation/runs` | GET | Evaluation history |
-| `/api/system/health` | GET | System status |
-
-## Security
-
-- Authentication and authorization
-- Restricted ingestion and review operations
-- CSRF protection
-- Secure session configuration
-- Upload validation and SSRF protection
-- Parameterized queries
-- Safe error responses
-- Secrets via environment variables
-- Protection against prompt injection
-
-## Testing
-
-- Unit tests for extraction, chunking, retrieval, ranking, routing, verification
-- Integration tests for database, ingestion, retrieval, citation, impact analysis
-- No paid API calls required
-- Deterministic fixtures and mocked models
-
-## Research Documentation
-
-All research-related documentation resides in `docs/invention-research/`:
-
-- `invention-hypothesis.md` — The proposed mechanism
-- `technical-problem-and-solution.md` — Problem formulation and solution overview
-- `pipeline-design.md` — Detailed pipeline design
-- `algorithm-specification.md` — Algorithm inputs, outputs, decision rules
-- `data-model-and-state-transitions.md` — Data structures and state machines
-- `prior-art-matrix.md` — Published prior art analysis
-- `experiment-protocol.md` — Evaluation framework and baselines
-- `experiment-results.md` — Actual measured results
-- `ablation-analysis.md` — Component impact analysis
-- `implementation-limitations.md` — Known constraints and future work
-- `dated-development-log.md` — Timestamped design decisions and experiments
-
-## Build and Run
-
-```bash
-# Build
-mvn clean install
-
-# Run
-mvn spring-boot:run
-
-# Test
-mvn test
-
-# Package
-mvn package
-```
-
-## Configuration
-
-See `.env.example` for all configuration options:
-
-- Database URL and credentials
-- pgvector settings
-- Ollama base URL and model names
-- Chunk size and overlap
-- Retrieval parameters
-- Ingestion and timeout limits
-- Logging levels
-
-## License
-
-This project is provided as-is for research and demonstration purposes.
-
-## Contributors
-
-- Development started: 2026-10-20
-- Architecture and implementation by Claude Code
 
 ---
 
-**Status:** Under active development. This README reflects the planned architecture. See implementation reports for actual completed features.
+## Environment Configuration
+
+The application reads configuration from environment variables or a `.env` file in the project root.
+
+### Sample Configuration (`.env.example`)
+
+Copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+```properties
+# ============================================================================
+# DATABASE CONFIGURATION
+# ============================================================================
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=spacedoc
+DB_USER=spacedoc
+DB_PASSWORD=spacedoc_local_dev_password
+JDBC_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+PGVECTOR_DIMENSION=768
+
+# ============================================================================
+# GROQ API CONFIGURATION (Answer Generation)
+# ============================================================================
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=openai/gpt-oss-120b
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+
+# ============================================================================
+# OLLAMA CONFIGURATION (Embeddings Only)
+# ============================================================================
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EMBEDDING_MODEL=nomic-embed-text
+
+# ============================================================================
+# APPLICATION SECURITY & SERVER
+# ============================================================================
+SERVER_PORT=8080
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin_local_dev_password
+SECRET_KEY=local-dev-secret-key-change-in-production
+```
+
+> **SECURITY NOTICE:** Never commit `.env` or real API keys to version control. The repository `.gitignore` strictly ignores `.env`, `logs/`, `*.log`, and `target/`.
+
+---
+
+## Quick Start & Installation
+
+### Prerequisites
+
+1. **Java Development Kit (JDK):** Version 21 or higher.
+2. **Apache Maven:** Version 3.8 or higher.
+3. **PostgreSQL 16+ with pgvector:** Available via Docker or local installation.
+4. **Ollama:** Running locally with the `nomic-embed-text` model pulled.
+5. **Groq API Key:** Available from [console.groq.com](https://console.groq.com/keys).
+
+---
+
+### Step 1: Start PostgreSQL with pgvector
+
+You can start the preconfigured container using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+Or manually connect to an existing PostgreSQL 16 instance and enable pgvector:
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+---
+
+### Step 2: Start Ollama and Pull the Embedding Model
+
+Start Ollama in a separate terminal:
+```bash
+ollama serve
+```
+
+Pull the required 768-dimensional embedding model:
+```bash
+ollama pull nomic-embed-text
+```
+
+---
+
+### Step 3: Run the Application (Windows PowerShell)
+
+SpaceDoc Intelligence provides a comprehensive PowerShell startup script `run_app.ps1` that performs automated pre-flight checks:
+- Verifies PostgreSQL (port 5432) TCP readiness
+- Verifies Ollama (port 11434) TCP readiness
+- Verifies `GROQ_API_KEY` presence in `.env`
+- Sets environment variables and launches via Maven
+
+Execute the script:
+```powershell
+powershell -ExecutionPolicy Bypass -File run_app.ps1
+```
+
+Alternatively, run manually via Maven:
+```powershell
+$env:GROQ_API_KEY = "your_actual_groq_api_key"
+$env:GROQ_MODEL = "openai/gpt-oss-120b"
+mvn spring-boot:run
+```
+
+---
+
+## Usage Instructions
+
+### Web User Interface
+
+Open your browser and navigate to:
+```
+http://localhost:8080
+```
+
+- **Login:** Enter credentials (`admin` / `admin_local_dev_password` by default).
+- **Dashboard (`/dashboard`):** Real-time metrics on ingested documents, chunks, and system health.
+- **Research Assistant (`/research-assistant`):** Natural language technical query interface with grounded answers, inline citations `[Source N]`, and confidence metrics.
+- **Ingestion Centre (`/ingestion-centre`):** Upload technical PDF files or ISRO web documentation for automated chunking and embedding.
+- **Document Library (`/document-library`):** Inspect ingested documents, revisions, and extracted requirement entities.
+- **Document Detail (`/document-detail?id={id}`):** View full document hierarchy, revision change points, and dependencies.
+
+### Key REST Endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/system/health` | `GET` | System health check reporting database and version status. |
+| `/api/retrieval/ask` | `POST` | Ask a technical question; returns answer, citations, and confidence. |
+| `/api/retrieval/search` | `POST` | Execute hybrid search; returns ranked document chunks with similarity scores. |
+| `/api/ingestion/upload` | `POST` | Upload and ingest a PDF document. |
+| `/api/impact/analyze` | `POST` | Perform impact analysis on document revisions and technical entities. |
+
+---
+
+## Testing & Quality Assurance
+
+### Execute Regression Test Suite
+SpaceDoc Intelligence includes 95 automated regression tests:
+
+```bash
+mvn clean test
+```
+
+Expected output:
+```
+[INFO] Results:
+[INFO] Tests run: 95, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+```
+
+### Build Production WAR Artifact
+```bash
+mvn package -DskipTests
+```
+The deployable WAR is generated at:
+```
+target/spacedoc-intelligence-1.0.0-SNAPSHOT.war
+```
+
+---
+
+## Troubleshooting
+
+### 1. Ollama IPv6 `Connection refused` on Windows
+- **Cause:** Windows resolves `localhost` to IPv6 `[::1]`, but Ollama binds to IPv4 `127.0.0.1`.
+- **Solution:** SpaceDoc's `EmbeddingService` automatically maps `localhost` and `[::1]` to `127.0.0.1`. Ensure `OLLAMA_BASE_URL=http://127.0.0.1:11434` is used.
+
+### 2. PostgreSQL Vector Dimension Mismatch
+- **Cause:** The embedding vector dimension must match the database column dimension (768 for `nomic-embed-text`).
+- **Solution:** Flyway migration `V2__update_vector_dimension_768.sql` automatically alters the column to `vector(768)`. Ensure the database user has schema modification permissions.
+
+### 3. Groq API Authorization or Rate Limits
+- **Cause:** Missing or expired `GROQ_API_KEY`.
+- **Solution:** Ensure a valid key is set in `.env` without surrounding quotes or spaces. Check your active quota at [console.groq.com](https://console.groq.com).
+
+### 4. Port Conflicts (8080, 5432, 11434)
+- **Check active port listeners in PowerShell:**
+  ```powershell
+  Get-NetTCPConnection -LocalPort 8080, 5432, 11434 -State Listen
+  ```
+- **Change application port:** Set `SERVER_PORT=8081` in `.env` or pass `-Dserver.port=8081` to Maven.
+
+---
+
+## License
+
+Internal research and engineering platform for ISRO technical document analysis. All rights reserved.

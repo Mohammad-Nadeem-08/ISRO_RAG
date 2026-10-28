@@ -1,0 +1,30 @@
+# Compiled class files
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files (contain secrets)
+.env
+
+# Log files
+logs/
+*.log
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# Build artifacts
+build-test.log
+BUILD_STATUS.txt
+experiment_results.json
+
+# Claude/AI context
+.claude/

@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
     "spring.jpa.hibernate.ddl-auto=validate",
     "spring.flyway.enabled=true"
 })
+@Tag("integration")
 @DisplayName("Live RAG Pipeline Integration Tests (PostgreSQL + pgvector + Ollama)")
 public class DocumentIngestionIntegrationTest {
 

@@ -72,11 +72,177 @@ public class RetrievalService {
             // 3. Merge using RRF
             List<RetrievalResultDTO> merged = reciprocalRankFusion(denseResults, lexicalResults, topK);
 
+            // 4. Rerank by Subject and Relationship matching
+            merged = rerankBySubjectAndRelationship(merged, query);
+
             log.info("Hybrid retrieval returned {} merged results", merged.size());
             return merged;
         } catch (Exception e) {
             log.error("Retrieval failed for query: {}", query, e);
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Rerank retrieved evidence so chunks must match the specific subject entity and
+     * relationship asked about, rather than merely sharing generic technical terminology.
+     */
+    public List<RetrievalResultDTO> rerankBySubjectAndRelationship(List<RetrievalResultDTO> results, String query) {
+        if (results == null || results.isEmpty() || query == null || query.trim().isEmpty()) {
+            return results != null ? results : Collections.emptyList();
+        }
+
+        QuerySubjectAnalysis analysis = analyzeQuerySubject(query);
+        if (!analysis.hasSpecificEntity()) {
+            return results;
+        }
+
+        List<RetrievalResultDTO> reranked = new ArrayList<>(results);
+        for (RetrievalResultDTO result : reranked) {
+            float baseScore = result.getRelevanceScore() != null ? result.getRelevanceScore() : 1.0f;
+            float subjectFactor = computeSubjectMatchFactor(result, analysis);
+            float relationshipFactor = computeRelationshipMatchFactor(result, analysis);
+
+            // Combined rerank score: penalize chunks that miss the target subject or describe a mismatched entity category
+            float adjustedScore = baseScore * (0.65f * subjectFactor + 0.35f * relationshipFactor);
+            result.setRelevanceScore(adjustedScore);
+        }
+
+        // Sort descending by adjusted score
+        reranked.sort((a, b) -> Float.compare(
+            b.getRelevanceScore() != null ? b.getRelevanceScore() : 0.0f,
+            a.getRelevanceScore() != null ? a.getRelevanceScore() : 0.0f
+        ));
+
+        return reranked;
+    }
+
+    public static class QuerySubjectAnalysis {
+        private final Set<String> targetEntities = new HashSet<>();
+        private boolean asksAboutSpacecraft = false;
+        private boolean asksAboutLaunchVehicle = false;
+        private final Set<String> relationshipTerms = new HashSet<>();
+
+        public boolean hasSpecificEntity() {
+            return !targetEntities.isEmpty() || !relationshipTerms.isEmpty();
+        }
+
+        public Set<String> getTargetEntities() { return targetEntities; }
+        public boolean isAsksAboutSpacecraft() { return asksAboutSpacecraft; }
+        public boolean isAsksAboutLaunchVehicle() { return asksAboutLaunchVehicle; }
+        public Set<String> getRelationshipTerms() { return relationshipTerms; }
+    }
+
+    public QuerySubjectAnalysis analyzeQuerySubject(String query) {
+        QuerySubjectAnalysis analysis = new QuerySubjectAnalysis();
+        String lowerQuery = query.toLowerCase();
+
+        // Spacecraft / mission entities
+        List<String> spacecraftList = List.of(
+            "chandrayaan-3", "chandrayaan-2", "chandrayaan-1", "chandrayaan",
+            "mangalyaan", "aditya-l1", "aditya", "gaganyaan", "nisar",
+            "astrosat", "risat", "cartosat", "eos", "insat", "gsat",
+            "lander", "rover", "orbiter", "spacecraft", "satellite"
+        );
+
+        // Launch vehicle / stage / engine entities
+        List<String> lvList = List.of(
+            "lvm3", "gslv mk iii", "gslv mk ii", "gslv", "pslv", "sslv",
+            "ce-20", "ce20", "vikas", "c25", "cus", "cryogenic upper stage",
+            "launch vehicle", "upper stage", "rocket stage", "rocket"
+        );
+
+        for (String sc : spacecraftList) {
+            if (lowerQuery.contains(sc)) {
+                analysis.targetEntities.add(sc);
+                analysis.asksAboutSpacecraft = true;
+            }
+        }
+
+        for (String lv : lvList) {
+            if (lowerQuery.contains(lv)) {
+                analysis.targetEntities.add(lv);
+                analysis.asksAboutLaunchVehicle = true;
+            }
+        }
+
+        // Key relationship/attribute terms
+        List<String> relationships = List.of(
+            "propulsion", "engine", "thruster", "propellant", "thrust",
+            "payload", "mass", "weight", "orbit", "trajectory", "telemetry",
+            "power", "battery", "solar", "thermal", "frequency", "landing", "fuel"
+        );
+
+        for (String rel : relationships) {
+            if (lowerQuery.contains(rel)) {
+                analysis.relationshipTerms.add(rel);
+            }
+        }
+
+        return analysis;
+    }
+
+    private float computeSubjectMatchFactor(RetrievalResultDTO result, QuerySubjectAnalysis analysis) {
+        String content = (result.getContent() != null ? result.getContent() : "").toLowerCase();
+        String title = (result.getSectionTitle() != null ? result.getSectionTitle() : "").toLowerCase();
+        String combined = content + " " + title;
+
+        // If the query specifically asks about a spacecraft (e.g. Chandrayaan-3):
+        if (analysis.isAsksAboutSpacecraft()) {
+            boolean mentionsTarget = analysis.getTargetEntities().stream().anyMatch(combined::contains);
+            if (mentionsTarget) {
+                return 1.0f; // Direct target subject match
+            }
+
+            // If it does NOT mention the spacecraft, but explicitly describes a launch vehicle / rocket engine:
+            // This is an entity mismatch (launch-vehicle evidence for spacecraft query)
+            boolean describesLaunchVehicle = combined.contains("lvm3") || combined.contains("ce-20")
+                    || combined.contains("cryogenic") || combined.contains("launch vehicle")
+                    || combined.contains("upper stage") || combined.contains("c25");
+            if (describesLaunchVehicle) {
+                return 0.15f; // Heavy penalty for entity category mismatch
+            }
+
+            return 0.35f;
+        }
+
+        // If query specifically asks about a launch vehicle (e.g. LVM3, CE-20):
+        if (analysis.isAsksAboutLaunchVehicle()) {
+            boolean mentionsTarget = analysis.getTargetEntities().stream().anyMatch(combined::contains);
+            if (mentionsTarget) {
+                return 1.0f;
+            }
+            return 0.30f;
+        }
+
+        // General entity matching
+        if (!analysis.getTargetEntities().isEmpty()) {
+            boolean anyMatch = analysis.getTargetEntities().stream().anyMatch(combined::contains);
+            return anyMatch ? 1.0f : 0.40f;
+        }
+
+        return 1.0f;
+    }
+
+    private float computeRelationshipMatchFactor(RetrievalResultDTO result, QuerySubjectAnalysis analysis) {
+        if (analysis.getRelationshipTerms().isEmpty()) {
+            return 1.0f;
+        }
+
+        String content = (result.getContent() != null ? result.getContent() : "").toLowerCase();
+        String title = (result.getSectionTitle() != null ? result.getSectionTitle() : "").toLowerCase();
+        String combined = content + " " + title;
+
+        long matches = analysis.getRelationshipTerms().stream()
+                .filter(combined::contains)
+                .count();
+
+        if (matches >= 2) {
+            return 1.0f;
+        } else if (matches == 1) {
+            return 0.80f;
+        } else {
+            return 0.30f;
         }
     }
 

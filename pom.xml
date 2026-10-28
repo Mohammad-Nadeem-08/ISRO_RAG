@@ -30,6 +30,7 @@
         <pgvector.version>0.1.1</pgvector.version>
         <pdfbox.version>3.0.1</pdfbox.version>
         <tika.version>2.9.0</tika.version>
+        <excludedGroups>integration</excludedGroups>
     </properties>
 
     <dependencies>
@@ -236,7 +237,7 @@
                 <configuration>
                     <argLine>-Dnet.bytebuddy.experimental=true</argLine>
                     <!-- Skip integration tests by default (marked with @Tag("integration")) -->
-                    <excludedGroups>integration</excludedGroups>
+                    <excludedGroups>${excludedGroups}</excludedGroups>
                 </configuration>
             </plugin>
         </plugins>

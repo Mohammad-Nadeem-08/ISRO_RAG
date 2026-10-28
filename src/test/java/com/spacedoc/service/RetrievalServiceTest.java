@@ -230,6 +230,62 @@ public class RetrievalServiceTest {
         assertEquals(2, deduped.size(), "Should handle empty content gracefully");
     }
 
+    // ==================== SUBJECT & RELATIONSHIP RERANKING REGRESSION TESTS ====================
+
+    @Test
+    @DisplayName("Regression: Reranking prioritizes direct spacecraft subject match over launch vehicle evidence")
+    void testRerankingPrefersSpacecraftSubjectOverLaunchVehicle() {
+        String query = "What is Chandrayaan-3's propulsion system?";
+
+        // Chunk 1: Mentions CE-20 engine for LVM3 launch vehicle upper stage (no Chandrayaan-3 mention)
+        RetrievalResultDTO lvChunk = createDTO(1L,
+            "The CE-20 is an indigenous cryogenic rocket engine developed for the LVM3 launch vehicle upper stage producing 200 kN nominal thrust.");
+        lvChunk.setSectionTitle("CE-20 Cryogenic Engine");
+        lvChunk.setRelevanceScore(0.016f); // Raw RRF rank 1
+
+        // Chunk 2: Mentions Chandrayaan-3 spacecraft launch by LVM3
+        RetrievalResultDTO launchChunk = createDTO(2L,
+            "LVM3 successfully launched Chandrayaan-3 into orbit. C25 stage powered by CE-20 injected the spacecraft.");
+        launchChunk.setSectionTitle("Launch Mission History");
+        launchChunk.setRelevanceScore(0.015f); // Raw RRF rank 2
+
+        // Chunk 3: Directly describes Chandrayaan-3 propulsion module
+        RetrievalResultDTO spacecraftPropulsionChunk = createDTO(3L,
+            "Chandrayaan-3 propulsion module is equipped with a 440 N Liquid Apogee Motor (LAM) and 16 attitude control thrusters.");
+        spacecraftPropulsionChunk.setSectionTitle("Spacecraft Propulsion System");
+        spacecraftPropulsionChunk.setRelevanceScore(0.014f); // Raw RRF rank 3
+
+        List<RetrievalResultDTO> inputList = List.of(lvChunk, launchChunk, spacecraftPropulsionChunk);
+
+        List<RetrievalResultDTO> reranked = retrievalService.rerankBySubjectAndRelationship(inputList, query);
+
+        // Verify that spacecraft propulsion chunk ranks #1 despite lower initial RRF score
+        assertEquals(3L, reranked.get(0).getChunkId(),
+            "Chunk describing Chandrayaan-3 propulsion module should rank highest");
+
+        // Verify that chunk describing launch vehicle with 0 Chandrayaan-3 mentions is heavily penalized
+        RetrievalResultDTO rerankedLv = reranked.stream().filter(r -> r.getChunkId() == 1L).findFirst().orElseThrow();
+        RetrievalResultDTO rerankedProp = reranked.stream().filter(r -> r.getChunkId() == 3L).findFirst().orElseThrow();
+        assertTrue(rerankedProp.getRelevanceScore() > rerankedLv.getRelevanceScore(),
+            "Spacecraft propulsion evidence must have higher score than launch vehicle engine evidence");
+    }
+
+    @Test
+    @DisplayName("Regression: Reranking penalizes entity category mismatch when subject entity is absent")
+    void testRerankingPenalizesEntityMismatchWhenSubjectAbsent() {
+        String query = "What is Chandrayaan-3's propulsion system?";
+
+        RetrievalResultDTO mismatchChunk = createDTO(1L,
+            "CE-20 cryogenic rocket engine powers the upper stage of the LVM3 launch vehicle.");
+        mismatchChunk.setRelevanceScore(1.0f);
+
+        List<RetrievalResultDTO> reranked = retrievalService.rerankBySubjectAndRelationship(List.of(mismatchChunk), query);
+
+        // Score must be heavily penalized due to entity mismatch (query asks about spacecraft, chunk describes launch vehicle)
+        assertTrue(reranked.get(0).getRelevanceScore() < 0.5f,
+            "Entity mismatch chunk must be significantly penalized");
+    }
+
     // ==================== HELPER METHODS ====================
 
     private DocumentChunk createTestChunk(Long id, String content, Long revisionId) {

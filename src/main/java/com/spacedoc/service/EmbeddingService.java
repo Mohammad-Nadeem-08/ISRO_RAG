@@ -37,12 +37,12 @@ public class EmbeddingService {
         }
 
         String model = "nomic-embed-text";
-        String baseUrl = "http://[::1]:11434";
+        String baseUrl = "http://127.0.0.1:11434";
         if (this.embeddingModel != null && !this.embeddingModel.trim().isEmpty()) {
             model = this.embeddingModel.trim();
         }
         if (this.ollamaBaseUrl != null && !this.ollamaBaseUrl.trim().isEmpty()) {
-            baseUrl = this.ollamaBaseUrl.trim().replace("localhost", "[::1]").replace("127.0.0.1", "[::1]");
+            baseUrl = this.ollamaBaseUrl.trim().replace("localhost", "127.0.0.1").replace("[::1]", "127.0.0.1");
         }
 
         try {
