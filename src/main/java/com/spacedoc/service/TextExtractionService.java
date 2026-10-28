@@ -12,16 +12,71 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 @Service
 public class TextExtractionService {
 
     private static final Logger log = LoggerFactory.getLogger(TextExtractionService.class);
+    private static final int MAX_URL_BYTES = 10 * 1024 * 1024; // 10 MB maximum download
+    private static final int MAX_REDIRECTS = 3;
+
+    /**
+     * Validate URL against SSRF (Server-Side Request Forgery) attacks.
+     * Blocks loopback, link-local, site-local, private, and cloud metadata addresses.
+     */
+    public void validateUrlSafety(String urlString) {
+        if (urlString == null || urlString.trim().isEmpty()) {
+            throw new IngestionException("Source URL cannot be null or empty");
+        }
+
+        URI uri;
+        try {
+            uri = new URI(urlString.trim());
+        } catch (URISyntaxException e) {
+            throw new IngestionException("Malformed URL syntax: " + e.getMessage());
+        }
+
+        String scheme = uri.getScheme();
+        if (scheme == null || (!scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https"))) {
+            throw new IngestionException("Invalid URL protocol '" + scheme + "'. Only HTTP and HTTPS are permitted.");
+        }
+
+        String host = uri.getHost();
+        if (host == null || host.trim().isEmpty()) {
+            throw new IngestionException("Invalid URL: missing host");
+        }
+        host = host.trim().toLowerCase();
+
+        // Block internal and cloud metadata hostnames
+        if (host.equals("metadata.google.internal") || host.equals("instance-data") ||
+                host.endsWith(".internal") || host.endsWith(".local") || host.endsWith(".localhost")) {
+            throw new IngestionException("Access to cloud metadata and internal domains is strictly blocked (SSRF protection)");
+        }
+
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(host);
+            if (addresses == null || addresses.length == 0) {
+                throw new IngestionException("Cannot resolve host: " + host);
+            }
+            for (InetAddress addr : addresses) {
+                if (addr.isLoopbackAddress() || addr.isAnyLocalAddress() ||
+                        addr.isLinkLocalAddress() || addr.isSiteLocalAddress() || addr.isMulticastAddress()) {
+                    throw new IngestionException("Access to private/local network address (" + addr.getHostAddress() + ") is strictly blocked (SSRF protection)");
+                }
+                String ip = addr.getHostAddress();
+                if (ip.equals("169.254.169.254") || ip.equalsIgnoreCase("fd00:ec2::254")) {
+                    throw new IngestionException("Access to cloud metadata IP (" + ip + ") is strictly blocked (SSRF protection)");
+                }
+            }
+        } catch (UnknownHostException e) {
+            throw new IngestionException("Unable to resolve host '" + host + "': " + e.getMessage());
+        }
+    }
 
     /**
      * Extract text from PDF input stream using Apache PDFBox
@@ -59,7 +114,7 @@ public class TextExtractionService {
             if (text == null || text.trim().isEmpty()) {
                 log.warn("Extracted 0 characters from PDF across {} page(s). Document appears scanned or image-only.", numberOfPages);
                 throw new IngestionException("PDF contains " + numberOfPages + " page(s) with no selectable text. " +
-                        "The document may be scanned or image-only. OCR is required to extract text from scanned documents.");
+                        "The document may be scanned or image-only. SpaceDoc Intelligence requires text-based PDFs or OCR-processed documents.");
             }
 
             String cleanText = text.trim();
@@ -78,43 +133,111 @@ public class TextExtractionService {
     }
 
     /**
-     * Extract text from URL (web page or document)
+     * Extract text from URL (web page or document) with SSRF and redirect protection
      */
     public String extractTextFromUrl(String urlString) {
         if (urlString == null || urlString.trim().isEmpty()) {
             throw new IngestionException("Source URL cannot be null or empty");
         }
 
-        try {
-            URL url = new URL(urlString);
-            URLConnection connection = url.openConnection();
-            connection.setRequestProperty("User-Agent", "SpaceDoc/1.0");
-            connection.setConnectTimeout(30000);
-            connection.setReadTimeout(30000);
+        String currentUrl = urlString.trim();
+        int redirects = 0;
 
-            String contentType = connection.getContentType();
-            try (InputStream inputStream = connection.getInputStream()) {
-                if ((contentType != null && contentType.toLowerCase().contains("pdf")) || urlString.toLowerCase().endsWith(".pdf")) {
-                    return extractText(inputStream);
+        while (redirects <= MAX_REDIRECTS) {
+            validateUrlSafety(currentUrl);
+
+            try {
+                URL url = new URI(currentUrl).toURL();
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestProperty("User-Agent", "SpaceDoc-RAG/1.0 (ISRO Technical Research Assistant)");
+                connection.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/pdf,text/plain;q=0.9,*/*;q=0.8");
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(15000);
+                connection.setInstanceFollowRedirects(false);
+
+                int responseCode = connection.getResponseCode();
+
+                // Handle Redirects safely
+                if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+                        responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                        responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+                        responseCode == 307 || responseCode == 308) {
+
+                    String location = connection.getHeaderField("Location");
+                    if (location == null || location.trim().isEmpty()) {
+                        throw new IngestionException("Received redirect from " + currentUrl + " without Location header");
+                    }
+
+                    URI redirectUri = new URI(currentUrl).resolve(location.trim());
+                    currentUrl = redirectUri.toString();
+                    redirects++;
+                    log.info("Following redirect #{} to {}", redirects, currentUrl);
+                    continue;
+                }
+
+                if (responseCode != HttpURLConnection.HTTP_OK) {
+                    throw new IngestionException("Remote server returned HTTP " + responseCode + " " +
+                            connection.getResponseMessage() + " for URL: " + currentUrl);
+                }
+
+                String contentType = connection.getContentType();
+                if (contentType != null) {
+                    String lowerType = contentType.toLowerCase();
+                    boolean isSupported = lowerType.contains("html") ||
+                            lowerType.contains("pdf") ||
+                            lowerType.contains("text/plain") ||
+                            lowerType.contains("xml");
+                    if (!isSupported) {
+                        throw new IngestionException("Unsupported content type '" + contentType + "'. Only web pages (HTML) and PDF documents are supported for ingestion.");
+                    }
+                }
+
+                byte[] data = readWithLimit(connection.getInputStream(), MAX_URL_BYTES);
+
+                boolean isPdf = (contentType != null && contentType.toLowerCase().contains("pdf")) ||
+                        currentUrl.toLowerCase().endsWith(".pdf");
+
+                if (isPdf) {
+                    return extractText(new ByteArrayInputStream(data));
                 } else {
                     // HTML parsing via Jsoup
-                    Document doc = Jsoup.parse(inputStream, StandardCharsets.UTF_8.name(), urlString);
-                    doc.select("script, style, nav, footer, header, noscript").remove();
+                    Document doc = Jsoup.parse(new ByteArrayInputStream(data), StandardCharsets.UTF_8.name(), currentUrl);
+                    doc.select("script, style, nav, footer, header, noscript, svg, form").remove();
                     String text = doc.body() != null ? doc.body().text() : doc.text();
                     if (text == null || text.trim().isEmpty()) {
-                        throw new IngestionException("No text content found at URL: " + urlString);
+                        throw new IngestionException("No text content found at URL: " + currentUrl);
                     }
                     String cleanText = text.trim();
-                    log.info("Extracted {} characters from URL: {}", cleanText.length(), urlString);
+                    log.info("Extracted {} characters from URL: {}", cleanText.length(), currentUrl);
                     return cleanText;
                 }
+
+            } catch (IngestionException ie) {
+                throw ie;
+            } catch (Exception e) {
+                log.error("Error extracting text from URL: {}", currentUrl, e);
+                throw new IngestionException("Error extracting text from URL (" + currentUrl + "): " + e.getMessage(), e);
             }
-        } catch (IngestionException ie) {
-            throw ie;
-        } catch (Exception e) {
-            log.error("Error extracting text from URL: {}", urlString, e);
-            throw new IngestionException("Error extracting text from URL: " + e.getMessage(), e);
         }
+
+        throw new IngestionException("Too many redirects (limit: " + MAX_REDIRECTS + ") while fetching URL");
+    }
+
+    private byte[] readWithLimit(InputStream in, int maxBytes) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] data = new byte[8192];
+        int bytesRead;
+        int totalRead = 0;
+
+        while ((bytesRead = in.read(data, 0, data.length)) != -1) {
+            totalRead += bytesRead;
+            if (totalRead > maxBytes) {
+                throw new IngestionException("Content at URL exceeds maximum size limit (" + (maxBytes / (1024 * 1024)) + " MB)");
+            }
+            buffer.write(data, 0, bytesRead);
+        }
+
+        return buffer.toByteArray();
     }
 
     /**

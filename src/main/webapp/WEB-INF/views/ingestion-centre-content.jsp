@@ -198,12 +198,57 @@
                 fileInfo.style.display = 'block';
             }
 
+            async function parseApiResponse(response, defaultActionName) {
+                if (response.redirected) {
+                    throw new Error('Your session has expired. Please refresh the page and sign in again.');
+                }
+
+                const contentType = response.headers.get('content-type') || '';
+                let data = null;
+
+                if (contentType.includes('application/json')) {
+                    try {
+                        data = await response.json();
+                    } catch (parseErr) {
+                        console.warn('Failed to parse JSON response', parseErr);
+                    }
+                }
+
+                if (!response.ok) {
+                    if (data && data.errorMessage) {
+                        throw new Error(data.errorMessage);
+                    } else if (data && data.message) {
+                        throw new Error(data.message);
+                    } else if (response.status === 401 || response.status === 403) {
+                        throw new Error('Authentication required or session expired. Please sign in again.');
+                    } else if (response.status === 413) {
+                        throw new Error('File exceeds the 50 MB upload limit.');
+                    } else if (response.status === 422) {
+                        throw new Error('The document could not be processed. Please verify file format and content.');
+                    } else {
+                        throw new Error(defaultActionName + ' failed with status ' + response.status);
+                    }
+                }
+
+                if (!data) {
+                    throw new Error('Server returned an unexpected non-JSON response (status ' + response.status + ')');
+                }
+
+                return data;
+            }
+
             // Upload form
             document.getElementById('upload-form').addEventListener('submit', function (e) {
                 e.preventDefault();
 
                 if (!fileInput.files.length) {
                     showError('Please select a file');
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                if (!file.name.toLowerCase().endsWith('.pdf')) {
+                    showError('Please select a valid PDF file (.pdf)');
                     return;
                 }
 
@@ -216,7 +261,7 @@
                 }
 
                 const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
+                formData.append('file', file);
                 formData.append('title', title);
                 formData.append('organization', org);
 
@@ -227,10 +272,7 @@
                     headers: getCsrfHeaders(),
                     body: formData
                 })
-                    .then(r => {
-                        if (!r.ok) throw new Error('Upload failed with status ' + r.status);
-                        return r.json();
-                    })
+                    .then(r => parseApiResponse(r, 'Upload'))
                     .then(data => {
                         showUploadLoading(false);
                         if (data.status === 'FAILED') {
@@ -263,6 +305,11 @@
                     return;
                 }
 
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    showError('Please enter a valid HTTP or HTTPS URL');
+                    return;
+                }
+
                 showUrlLoading(true);
 
                 fetch('/api/ingestion/url', {
@@ -276,10 +323,7 @@
                         organization: org
                     })
                 })
-                    .then(r => {
-                        if (!r.ok) throw new Error('Submission failed with status ' + r.status);
-                        return r.json();
-                    })
+                    .then(r => parseApiResponse(r, 'URL submission'))
                     .then(data => {
                         showUrlLoading(false);
                         if (data.status === 'FAILED') {

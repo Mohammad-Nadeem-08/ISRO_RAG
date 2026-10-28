@@ -1,6 +1,100 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+        <style>
+            .evidence-item {
+                background: #ffffff;
+                border: 1px solid var(--neutral-border, #e2e8f0);
+                border-left: 3px solid var(--primary, #2563eb);
+                border-radius: 6px;
+                padding: 12px;
+                margin-bottom: 12px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+                transition: all 0.2s ease;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            .evidence-item:hover {
+                border-color: #cbd5e1;
+                border-left-color: var(--primary, #2563eb);
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            }
+            .evidence-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+                gap: 8px;
+            }
+            .evidence-source-title {
+                font-weight: 600;
+                font-size: 13px;
+                color: var(--primary, #2563eb);
+            }
+            .evidence-score-badge {
+                font-size: 10px;
+                font-weight: 600;
+                background: #eff6ff;
+                color: #1d4ed8;
+                border: 1px solid #bfdbfe;
+                border-radius: 4px;
+                padding: 2px 6px;
+                white-space: nowrap;
+            }
+            .evidence-doc-title {
+                font-size: 11px;
+                font-weight: 600;
+                color: #334155;
+                margin-bottom: 4px;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            .evidence-text {
+                font-size: 12px;
+                color: #475569;
+                line-height: 1.5;
+                margin-bottom: 8px;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            .evidence-meta {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                font-size: 11px;
+                color: #64748b;
+                border-top: 1px solid #f1f5f9;
+                padding-top: 6px;
+            }
+            .evidence-meta-tag {
+                display: inline-flex;
+                align-items: center;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 4px;
+                padding: 2px 6px;
+                font-size: 10px;
+                color: #64748b;
+                white-space: nowrap;
+            }
+            .evidence-meta-tag i {
+                margin-right: 4px;
+                color: #94a3b8;
+            }
+            #evidence-panel {
+                max-height: 520px;
+                overflow-y: auto;
+                padding-right: 4px;
+            }
+            #evidence-panel::-webkit-scrollbar {
+                width: 5px;
+            }
+            #evidence-panel::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
+        </style>
+
         <div class="page-header">
             <h1 class="page-title">Research Assistant</h1>
             <p class="page-subtitle">Ask questions about your documents</p>
@@ -135,7 +229,7 @@
                         const answerHtml = formatAnswer(data);
                         addMessage('assistant', answerHtml);
 
-                        // Display evidence
+                        // Display evidence safely
                         displayEvidence(data.evidence);
 
                         // Display metrics
@@ -162,50 +256,141 @@
             }
 
             function formatAnswer(data) {
-                if (!data.answer) {
+                if (!data || !data.answer) {
                     return '<div class="alert alert-warning">No answer generated</div>';
                 }
 
-                // Format citations as clickable elements
-                let formattedAnswer = data.answer;
-                if (data.citations && data.citations.length > 0) {
-                    formattedAnswer += '<div class="mt-2">';
-                    data.citations.forEach((citation, idx) => {
-                        formattedAnswer += `<span class="citation" onclick="highlightEvidence(\${idx})">Source \${citation.sourceNumber}</span>`;
+                // Safely escape the answer text first to prevent XSS
+                let text = escapeHtml(data.answer);
+
+                // Replace [Source N] patterns with clickable citation badges
+                text = text.replace(/\[(?:Source|Citation|Chunk)?[\\s\\h\\xA0]*#?(\\d+)\]/gi, (match, p1) => {
+                    const idx = parseInt(p1, 10) - 1;
+                    return `<span class="citation" onclick="highlightEvidence(\${idx})" title="Jump to Source \${p1}">Source \${p1}</span>`;
+                });
+
+                let formatted = `<div>\${text}</div>`;
+
+                if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
+                    formatted += '<div class="mt-2 pt-2 border-top" style="border-color: rgba(0,0,0,0.06) !important;"><small class="text-muted d-block mb-1" style="font-size: 11px;">Referenced Sources:</small>';
+                    data.citations.forEach((c) => {
+                        const sNum = c.sourceNumber != null ? c.sourceNumber : 1;
+                        const idx = sNum - 1;
+                        formatted += `<span class="citation" onclick="highlightEvidence(\${idx})" title="Jump to Source \${sNum}">Source \${sNum}</span> `;
                     });
-                    formattedAnswer += '</div>';
+                    formatted += '</div>';
                 }
 
-                return formattedAnswer;
+                return formatted;
             }
 
             function displayEvidence(evidence) {
                 const container = document.getElementById('evidence-panel');
+                if (!container) return;
 
-                if (!evidence || evidence.length === 0) {
-                    container.innerHTML = '<div class="alert alert-info">No evidence found</div>';
+                // Safely clear previous evidence content
+                container.textContent = '';
+
+                if (!evidence || !Array.isArray(evidence) || evidence.length === 0) {
+                    const emptyAlert = document.createElement('div');
+                    emptyAlert.className = 'alert alert-info';
+                    emptyAlert.style.fontSize = '12px';
+                    emptyAlert.textContent = 'No evidence found';
+                    container.appendChild(emptyAlert);
                     return;
                 }
 
-                let html = '';
                 evidence.forEach((item, idx) => {
-                    const content = escapeHtml(item.content);
-                    const truncated = content.length > 150 ? content.substring(0, 150) + '...' : content;
-                    html += `
-            <div class="evidence-item" id="evidence-\${idx}">
-                <div style="font-weight: 600; font-size: 12px; color: #2563eb;">
-                    Source \${idx + 1}
-                </div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
-                    \${truncated}
-                </div>
-                \${item.sectionTitle ? `< small style = "color: #94a3b8; display: block; margin-top: 4px;" > Section: \${ escapeHtml(item.sectionTitle) }</small > ` : ''}
-                <small style="color: #94a3b8; display: block; margin-top: 2px;">Score: \${(item.relevanceScore * 100).toFixed(0)}%</small>
-            </div>
-        `;
-                });
+                    if (!item) return;
 
-                container.innerHTML = html;
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'evidence-item';
+                    itemDiv.id = 'evidence-' + idx;
+
+                    // Header: Source Title and Relevance Score Badge
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'evidence-header';
+
+                    const sourceTitle = document.createElement('span');
+                    sourceTitle.className = 'evidence-source-title';
+                    sourceTitle.textContent = 'Source ' + (idx + 1);
+                    headerDiv.appendChild(sourceTitle);
+
+                    if (item.relevanceScore != null) {
+                        const scoreSpan = document.createElement('span');
+                        scoreSpan.className = 'evidence-score-badge';
+                        const scoreVal = typeof item.relevanceScore === 'number' ? item.relevanceScore : parseFloat(item.relevanceScore);
+                        const pct = scoreVal <= 0.05 ? Math.min(100, Math.round((scoreVal / 0.01639) * 100)) : Math.round(scoreVal * 100);
+                        scoreSpan.textContent = 'Score: ' + (isNaN(pct) ? 'N/A' : pct + '%');
+                        headerDiv.appendChild(scoreSpan);
+                    }
+                    itemDiv.appendChild(headerDiv);
+
+                    // Document Title if present
+                    if (item.documentTitle && item.documentTitle.trim()) {
+                        const docTitleDiv = document.createElement('div');
+                        docTitleDiv.className = 'evidence-doc-title';
+                        docTitleDiv.textContent = item.documentTitle.trim();
+                        itemDiv.appendChild(docTitleDiv);
+                    }
+
+                    // Content snippet safely inserted as textContent (NOT innerHTML)
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'evidence-text';
+                    const rawContent = item.content || '';
+                    const truncated = rawContent.length > 220 ? rawContent.substring(0, 220) + '...' : rawContent;
+                    contentDiv.textContent = truncated;
+                    itemDiv.appendChild(contentDiv);
+
+                    // Metadata container
+                    const metaDiv = document.createElement('div');
+                    metaDiv.className = 'evidence-meta';
+
+                    // Section Title
+                    if (item.sectionTitle && item.sectionTitle.trim()) {
+                        const sectionTag = document.createElement('span');
+                        sectionTag.className = 'evidence-meta-tag';
+                        sectionTag.innerHTML = '<i class="fas fa-bookmark"></i>';
+                        sectionTag.appendChild(document.createTextNode('Section: ' + item.sectionTitle.trim()));
+                        metaDiv.appendChild(sectionTag);
+                    }
+
+                    // Page Number
+                    if (item.pageNumber != null) {
+                        const pageTag = document.createElement('span');
+                        pageTag.className = 'evidence-meta-tag';
+                        pageTag.innerHTML = '<i class="fas fa-file-alt"></i>';
+                        pageTag.appendChild(document.createTextNode('Page ' + item.pageNumber));
+                        metaDiv.appendChild(pageTag);
+                    }
+
+                    // Chunk ID & Revision ID
+                    if (item.chunkId != null || item.revisionId != null) {
+                        const chunkTag = document.createElement('span');
+                        chunkTag.className = 'evidence-meta-tag';
+                        chunkTag.innerHTML = '<i class="fas fa-cube"></i>';
+                        let chunkText = '';
+                        if (item.chunkId != null) chunkText += 'Chunk #' + item.chunkId;
+                        if (item.revisionId != null) chunkText += (chunkText ? ' (Rev ' : 'Rev ') + item.revisionId + (item.chunkId != null ? ')' : '');
+                        chunkTag.appendChild(document.createTextNode(chunkText));
+                        metaDiv.appendChild(chunkTag);
+                    }
+
+                    // Conflict status if any
+                    if (item.conflictStatus && item.conflictStatus !== 'NO_CONFLICT') {
+                        const conflictTag = document.createElement('span');
+                        conflictTag.className = 'evidence-meta-tag';
+                        conflictTag.style.borderColor = '#fde68a';
+                        conflictTag.style.background = '#fffbeb';
+                        conflictTag.style.color = '#b45309';
+                        conflictTag.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #d97706;"></i>';
+                        conflictTag.appendChild(document.createTextNode(item.conflictStatus));
+                        metaDiv.appendChild(conflictTag);
+                    }
+
+                    itemDiv.appendChild(metaDiv);
+                    container.appendChild(itemDiv);
+                });
             }
 
             function displayMetrics(data) {
@@ -328,8 +513,14 @@
             function highlightEvidence(idx) {
                 const elem = document.getElementById('evidence-' + idx);
                 if (elem) {
-                    elem.style.background = 'rgba(37, 99, 235, 0.1)';
-                    setTimeout(() => elem.style.background = '', 2000);
+                    elem.style.transition = 'all 0.3s ease';
+                    elem.style.background = 'rgba(37, 99, 235, 0.12)';
+                    elem.style.borderColor = 'var(--primary, #2563eb)';
+                    elem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    setTimeout(() => {
+                        elem.style.background = '';
+                        elem.style.borderColor = '';
+                    }, 2500);
                 }
             }
         </script>

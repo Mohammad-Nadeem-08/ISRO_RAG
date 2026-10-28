@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -121,15 +122,21 @@ public class RetrievalService {
         private final Set<String> targetEntities = new HashSet<>();
         private boolean asksAboutSpacecraft = false;
         private boolean asksAboutLaunchVehicle = false;
+        private boolean asksAboutOrganization = false;
+        private boolean definitionalQuery = false;
+        private String definitionalTarget = null;
         private final Set<String> relationshipTerms = new HashSet<>();
 
         public boolean hasSpecificEntity() {
-            return !targetEntities.isEmpty() || !relationshipTerms.isEmpty();
+            return !targetEntities.isEmpty() || !relationshipTerms.isEmpty() || definitionalQuery;
         }
 
         public Set<String> getTargetEntities() { return targetEntities; }
         public boolean isAsksAboutSpacecraft() { return asksAboutSpacecraft; }
         public boolean isAsksAboutLaunchVehicle() { return asksAboutLaunchVehicle; }
+        public boolean isAsksAboutOrganization() { return asksAboutOrganization; }
+        public boolean isDefinitionalQuery() { return definitionalQuery; }
+        public String getDefinitionalTarget() { return definitionalTarget; }
         public Set<String> getRelationshipTerms() { return relationshipTerms; }
     }
 
@@ -152,6 +159,11 @@ public class RetrievalService {
             "launch vehicle", "upper stage", "rocket stage", "rocket"
         );
 
+        // Organization / agency entities
+        List<String> orgList = List.of(
+            "isro", "nasa", "esa", "jaxa", "cnsa", "roscosmos", "drdo"
+        );
+
         for (String sc : spacecraftList) {
             if (lowerQuery.contains(sc)) {
                 analysis.targetEntities.add(sc);
@@ -164,6 +176,22 @@ public class RetrievalService {
                 analysis.targetEntities.add(lv);
                 analysis.asksAboutLaunchVehicle = true;
             }
+        }
+
+        for (String org : orgList) {
+            if (lowerQuery.matches(".*\\b" + Pattern.quote(org) + "\\b.*")) {
+                analysis.targetEntities.add(org);
+                analysis.asksAboutOrganization = true;
+            }
+        }
+
+        // Definitional query detection (e.g. "what is isro", "who is isro", "define isro", "what does isro stand for")
+        boolean isDefinitional = lowerQuery.matches(".*\\b(what\\s+is|who\\s+is|define|meaning\\s+of|stands?\\s+for|tell\\s+me\\s+about)\\b.*")
+                || lowerQuery.equals("isro") || lowerQuery.equals("isro?") || lowerQuery.equals("what is isro") || lowerQuery.equals("what is isro?");
+
+        if (isDefinitional && !analysis.targetEntities.isEmpty()) {
+            analysis.definitionalQuery = true;
+            analysis.definitionalTarget = analysis.targetEntities.iterator().next();
         }
 
         // Key relationship/attribute terms
@@ -186,6 +214,24 @@ public class RetrievalService {
         String content = (result.getContent() != null ? result.getContent() : "").toLowerCase();
         String title = (result.getSectionTitle() != null ? result.getSectionTitle() : "").toLowerCase();
         String combined = content + " " + title;
+
+        // If the query asks for a general definition or overview of an organization (e.g. "What is ISRO?"):
+        if (analysis.isDefinitionalQuery() && analysis.isAsksAboutOrganization()) {
+            boolean definesTarget = isDefinitionalContentFor(combined, analysis.getDefinitionalTarget());
+            if (definesTarget) {
+                return 1.0f; // Directly defines or provides an overview of the organization
+            }
+
+            // If the chunk merely describes a specific rocket engine or launch vehicle without defining the organization:
+            boolean describesHardwareOrStage = combined.contains("ce-20") || combined.contains("cryogenic")
+                    || combined.contains("launch vehicle") || combined.contains("upper stage")
+                    || combined.contains("engine") || combined.contains("c25") || combined.contains("cus");
+            if (describesHardwareOrStage) {
+                return 0.10f; // Heavy penalty for using engine specs to answer an organization definition query
+            }
+
+            return 0.25f;
+        }
 
         // If the query specifically asks about a spacecraft (e.g. Chandrayaan-3):
         if (analysis.isAsksAboutSpacecraft()) {
@@ -222,6 +268,25 @@ public class RetrievalService {
         }
 
         return 1.0f;
+    }
+
+    public boolean isDefinitionalContentFor(String combined, String target) {
+        if (combined == null || target == null || target.isEmpty()) return false;
+        String t = target.toLowerCase();
+        return combined.contains(t + " is the")
+                || combined.contains(t + " is an")
+                || combined.contains(t + " is a")
+                || combined.contains(t + " was established")
+                || combined.contains(t + " was founded")
+                || combined.contains(t + " stands for")
+                || combined.contains("indian space research organisation")
+                || combined.contains("national space agency")
+                || combined.contains("space agency of india")
+                || combined.contains("department of space")
+                || combined.contains("primary mandate")
+                || combined.contains("headquartered in")
+                || combined.contains("about " + t)
+                || combined.contains("overview of " + t);
     }
 
     private float computeRelationshipMatchFactor(RetrievalResultDTO result, QuerySubjectAnalysis analysis) {

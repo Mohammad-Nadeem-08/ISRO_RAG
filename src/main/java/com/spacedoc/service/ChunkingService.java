@@ -129,34 +129,107 @@ public class ChunkingService {
         return matcher.find() ? matcher.group(1) : "0";
     }
 
-    private List<String> splitIntoChunks(String text) {
+    public List<String> splitIntoChunks(String text) {
         List<String> chunks = new ArrayList<>();
-
-        if (text.length() <= chunkSize) {
-            chunks.add(text);
+        if (text == null || text.trim().isEmpty()) {
             return chunks;
         }
 
-        String[] sentences = text.split("(?<=[.!?])\\s+");
+        int targetChunkSize = this.chunkSize > 0 ? this.chunkSize : 512;
+        int targetOverlap = this.chunkOverlap > 0 ? Math.min(this.chunkOverlap, targetChunkSize / 3) : 128;
+        int maxUnitLen = Math.max(100, targetChunkSize - targetOverlap);
+
+        if (text.trim().length() <= targetChunkSize) {
+            chunks.add(text.trim());
+            return chunks;
+        }
+
+        // Split by sentence delimiters (. ! ?) or line breaks
+        String[] rawUnits = text.split("((?<=[.!?])\\s+|(?<=\\n))");
+        List<String> normalizedUnits = new ArrayList<>();
+
+        for (String unit : rawUnits) {
+            String trimmed = unit.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            if (trimmed.length() <= maxUnitLen) {
+                normalizedUnits.add(trimmed);
+            } else {
+                normalizedUnits.addAll(splitLongSegment(trimmed, maxUnitLen, targetOverlap / 2));
+            }
+        }
+
         StringBuilder currentChunk = new StringBuilder();
 
-        for (String sentence : sentences) {
-            if ((currentChunk.length() + sentence.length()) > chunkSize) {
-                if (currentChunk.length() > 0) {
-                    chunks.add(currentChunk.toString());
-                    // Keep overlap
-                    int overlapStart = Math.max(0, currentChunk.length() - chunkOverlap);
-                    currentChunk = new StringBuilder(currentChunk.substring(overlapStart));
+        for (String unit : normalizedUnits) {
+            if (currentChunk.length() > 0 && (currentChunk.length() + 1 + unit.length()) > targetChunkSize) {
+                chunks.add(currentChunk.toString().trim());
+                int overlapStart = Math.max(0, currentChunk.length() - targetOverlap);
+                String overlapText = currentChunk.substring(overlapStart).trim();
+                currentChunk = new StringBuilder();
+                if (!overlapText.isEmpty()) {
+                    currentChunk.append(overlapText).append(" ");
                 }
             }
-            currentChunk.append(sentence).append(" ");
+
+            if (currentChunk.length() + (currentChunk.length() > 0 ? 1 : 0) + unit.length() > targetChunkSize) {
+                // If even after flushing or with overlap it would exceed, flush without overlap
+                if (currentChunk.length() > 0) {
+                    chunks.add(currentChunk.toString().trim());
+                    currentChunk = new StringBuilder();
+                }
+            }
+
+            if (currentChunk.length() > 0 && !currentChunk.toString().endsWith(" ")) {
+                currentChunk.append(" ");
+            }
+            currentChunk.append(unit);
         }
 
         if (currentChunk.length() > 0) {
-            chunks.add(currentChunk.toString());
+            String finalChunk = currentChunk.toString().trim();
+            if (!finalChunk.isEmpty()) {
+                chunks.add(finalChunk);
+            }
         }
 
         return chunks;
+    }
+
+    private List<String> splitLongSegment(String segment, int maxLen, int overlap) {
+        List<String> pieces = new ArrayList<>();
+        int start = 0;
+        int length = segment.length();
+
+        while (start < length) {
+            int end = Math.min(start + maxLen, length);
+
+            // Try to find a whitespace boundary if not at the very end
+            if (end < length) {
+                int lastSpace = segment.lastIndexOf(' ', end);
+                if (lastSpace > start + maxLen / 3) {
+                    end = lastSpace;
+                }
+            }
+
+            String piece = segment.substring(start, end).trim();
+            if (!piece.isEmpty()) {
+                pieces.add(piece);
+            }
+
+            if (end >= length) {
+                break;
+            }
+
+            int nextStart = end - overlap;
+            if (nextStart <= start) {
+                nextStart = end;
+            }
+            start = nextStart;
+        }
+
+        return pieces;
     }
 
     private int estimateTokenCount(String text) {

@@ -46,20 +46,25 @@ public class DocumentIngestionService {
         this.embeddingService = embeddingService;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = IngestionException.class)
     public IngestionJob ingestDocument(String sourceUrl, String documentTitle, String sourceOrganization,
                                        String extractedText, String sourceType) {
         String jobKey = UUID.randomUUID().toString();
         IngestionJob job = new IngestionJob();
         job.setJobKey(jobKey);
-        job.setJobType("URL_INGESTION");
+        job.setJobType("PDF".equalsIgnoreCase(sourceType) ? "PDF_INGESTION" : "URL_INGESTION");
         job.setSourceUrl(sourceUrl);
+        job.setSourceFilename("PDF".equalsIgnoreCase(sourceType) ? sourceUrl : null);
         job.setStatus("PROCESSING");
         job.setProgressPercent(0);
         job.setCreatedAt(LocalDateTime.now());
 
         job = ingestionJobRepository.save(job);
         IngestionJob savedJob = job;
+
+        boolean isNewDocument = false;
+        Document document = null;
+        DocumentRevision savedRevision = null;
 
         try {
             savedJob.setStartedAt(LocalDateTime.now());
@@ -74,7 +79,6 @@ public class DocumentIngestionService {
             String docKey = generateDocumentKey(documentTitle);
             Optional<Document> existingDoc = documentRepository.findByDocumentKey(docKey);
 
-            Document document;
             if (existingDoc.isPresent()) {
                 document = existingDoc.get();
                 if (contentHash.equals(document.getContentHash())) {
@@ -85,6 +89,7 @@ public class DocumentIngestionService {
                     return savedJob;
                 }
             } else {
+                isNewDocument = true;
                 document = new Document();
                 document.setDocumentKey(docKey);
                 document.setTitle(documentTitle);
@@ -122,13 +127,17 @@ public class DocumentIngestionService {
             }
 
             revision = revisionRepository.save(revision);
-            DocumentRevision savedRevision = revision;
+            savedRevision = revision;
 
             savedJob.setProgressPercent(40);
             ingestionJobRepository.save(savedJob);
 
             // Chunk the text
             List<DocumentChunk> chunks = chunkingService.chunkDocument(extractedText, savedRevision);
+            if (chunks.isEmpty()) {
+                throw new IngestionException("Text extraction produced 0 usable chunks for document: " + documentTitle);
+            }
+
             savedJob.setProgressPercent(60);
             ingestionJobRepository.save(savedJob);
 
@@ -149,9 +158,9 @@ public class DocumentIngestionService {
 
             chunkRepository.saveAll(chunks);
 
-            revision.setTotalChunks(chunks.size());
-            revision.setExtractedTextLength((long) extractedText.length());
-            revisionRepository.save(revision);
+            savedRevision.setTotalChunks(chunks.size());
+            savedRevision.setExtractedTextLength((long) extractedText.length());
+            revisionRepository.save(savedRevision);
 
             document.setContentHash(contentHash);
             document.setUpdatedAt(LocalDateTime.now());
@@ -167,7 +176,19 @@ public class DocumentIngestionService {
             return savedJob;
 
         } catch (Exception e) {
-            log.error("Error ingesting document", e);
+            log.error("Error ingesting document: {}", e.getMessage(), e);
+            // Clean up partial entities to prevent duplicate or orphaned records
+            try {
+                if (savedRevision != null && savedRevision.getId() != null) {
+                    revisionRepository.delete(savedRevision);
+                }
+                if (isNewDocument && document != null && document.getId() != null) {
+                    documentRepository.delete(document);
+                }
+            } catch (Exception cleanEx) {
+                log.warn("Error cleaning up partial records: {}", cleanEx.getMessage());
+            }
+
             savedJob.setStatus("FAILED");
             savedJob.setErrorMessage(e.getMessage());
             savedJob.setCompletedAt(LocalDateTime.now());
@@ -196,5 +217,13 @@ public class DocumentIngestionService {
         } catch (NoSuchAlgorithmException e) {
             throw new IngestionException("SHA-256 not available", e);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<IngestionJob> getJob(String jobKey) {
+        if (jobKey == null || jobKey.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        return ingestionJobRepository.findByJobKey(jobKey.trim());
     }
 }

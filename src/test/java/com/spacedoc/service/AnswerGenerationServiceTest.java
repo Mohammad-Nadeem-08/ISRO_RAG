@@ -569,6 +569,70 @@ class AnswerGenerationServiceTest {
         assertTrue(routed.getRoutedEvidence().stream().allMatch(e -> e.getApplicabilityScore() != null));
     }
 
+    @Test
+    @DisplayName("Regression: What is ISRO query without definitional evidence abstains with zero confidence")
+    void testWhatIsISROWithoutDefinitionalEvidenceAbstainsWithZeroConfidence() {
+        String query = "What is ISRO?";
+        // Evidence contains only launch vehicle engine specs (CE-20), no organizational definition
+        List<RetrievalResultDTO> evidence = List.of(
+            createTestChunk(1L, 100L,
+                "The CE-20 is an indigenous cryogenic rocket engine developed by ISRO for the LVM3 launch vehicle upper stage.",
+                "CE-20 Introduction", 0.90f),
+            createTestChunk(2L, 100L,
+                "ISRO Cryogenic Upper Stage CUS technical characteristics and operating parameters.",
+                "CUS Overview", 0.85f)
+        );
+
+        AnswerGenerationService.GeneratedAnswer answer = answerGenerationService.generateAnswer(query, evidence);
+
+        assertNotNull(answer);
+        assertNotNull(answer.getAnswerText());
+        assertTrue(answerGenerationService.isInsufficientEvidenceAnswer(answer.getAnswerText()),
+            "Answer must explicitly state that available documents do not provide enough information to define ISRO");
+        assertTrue(answer.getAnswerText().contains("do not provide enough information to answer this question")
+                || answer.getAnswerText().contains("insufficient"),
+            "Answer must include clear insufficient-evidence explanation");
+        assertEquals(0.0f, answer.getConfidence(),
+            "Confidence must be calibrated to 0.0 on definitional abstention");
+        assertEquals(0, answer.getCitations().size(),
+            "Abstention must not cite irrelevant engine specs as supporting a definition");
+    }
+
+    @Test
+    @DisplayName("Regression: What is ISRO query with definitional evidence answers and produces positive confidence")
+    void testWhatIsISROWithDefinitionalEvidenceAnswers() {
+        String query = "What is ISRO?";
+        List<RetrievalResultDTO> evidence = List.of(
+            createTestChunk(1L, 100L,
+                "ISRO is the space agency of India responsible for the development of space technologies and space exploration missions.",
+                "About ISRO", 0.95f)
+        );
+
+        AnswerGenerationService.GeneratedAnswer answer = answerGenerationService.generateAnswer(query, evidence);
+
+        assertNotNull(answer);
+        assertNotNull(answer.getAnswerText());
+        assertFalse(answerGenerationService.isInsufficientEvidenceAnswer(answer.getAnswerText()),
+            "Answer must not abstain when authoritative definitional evidence is provided");
+        assertTrue(answer.getConfidence() > 0.0f,
+            "Confidence must be positive when definitional evidence is present");
+        assertTrue(answer.getCitations().size() > 0,
+            "Must have citations for grounded answer");
+    }
+
+    @Test
+    @DisplayName("Regression: Insufficient evidence detection catches all document-missing phrases")
+    void testInsufficientEvidencePhrases() {
+        assertTrue(answerGenerationService.isInsufficientEvidenceAnswer(
+            "The available indexed documents do not provide enough information to answer this question."));
+        assertTrue(answerGenerationService.isInsufficientEvidenceAnswer(
+            "The available evidence is insufficient to establish the requested fact."));
+        assertTrue(answerGenerationService.isInsufficientEvidenceAnswer(
+            "The provided evidence does not contain information about the spacecraft propulsion system."));
+        assertFalse(answerGenerationService.isInsufficientEvidenceAnswer(
+            "The CE-20 engine powers the upper stage of the LVM3 launch vehicle."));
+    }
+
     // ============ Helper Methods ============
 
     private void log(String message, Object... args) {

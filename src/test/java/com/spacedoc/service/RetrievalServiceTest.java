@@ -286,6 +286,40 @@ public class RetrievalServiceTest {
             "Entity mismatch chunk must be significantly penalized");
     }
 
+    @Test
+    @DisplayName("Regression: Detect definitional query for organization (What is ISRO?)")
+    void testDefinitionalQueryDetectionForOrganization() {
+        String query = "What is ISRO?";
+        RetrievalService.QuerySubjectAnalysis analysis = retrievalService.analyzeQuerySubject(query);
+
+        assertTrue(analysis.isDefinitionalQuery(), "Query 'What is ISRO?' must be recognized as definitional");
+        assertTrue(analysis.isAsksAboutOrganization(), "Query must be recognized as asking about an organization");
+        assertEquals("isro", analysis.getDefinitionalTarget(), "Definitional target should be 'isro'");
+    }
+
+    @Test
+    @DisplayName("Regression: Reranking prioritizes definitional evidence over incidental engine specifications")
+    void testDefinitionalQueryRerankingPrioritizesDefinitionOverEngineSpecs() {
+        String query = "What is ISRO?";
+
+        // Incidental mention in engine chunk
+        RetrievalResultDTO engineChunk = createDTO(1L,
+            "The CE-20 is an indigenous cryogenic rocket engine developed by ISRO for the LVM3 launch vehicle upper stage.");
+        engineChunk.setRelevanceScore(0.95f);
+
+        // Actual definitional chunk
+        RetrievalResultDTO defChunk = createDTO(2L,
+            "ISRO is the national space agency of India, operating under the Department of Space to execute space exploration missions.");
+        defChunk.setRelevanceScore(0.70f);
+
+        List<RetrievalResultDTO> reranked = retrievalService.rerankBySubjectAndRelationship(List.of(engineChunk, defChunk), query);
+
+        assertEquals(2L, reranked.get(0).getChunkId(),
+            "Definitional chunk must rank #1 over incidental engine specification");
+        assertTrue(reranked.get(0).getRelevanceScore() > reranked.get(1).getRelevanceScore(),
+            "Definitional chunk must have higher adjusted score");
+    }
+
     // ==================== HELPER METHODS ====================
 
     private DocumentChunk createTestChunk(Long id, String content, Long revisionId) {

@@ -227,6 +227,26 @@ class ChunkingServiceTest {
         assertTrue(chunks.size() >= 1);
     }
 
+    @Test
+    void testChunkDocument_LongUnpunctuatedWebTextDoesNotExceedLimit() {
+        DocumentRevision revision = createRevision(1L);
+        // Simulate a 10,000 character web block without sentence-ending punctuation
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 500; i++) {
+            sb.append("spacecraft technical subsystem telemetry parameter ").append(i).append(" ");
+        }
+        String longText = sb.toString();
+
+        List<DocumentChunk> chunks = service.chunkDocument(longText, revision);
+
+        assertFalse(chunks.isEmpty(), "Should produce chunks from long unpunctuated text");
+        assertTrue(chunks.size() > 10, "Should split 10,000-char block into multiple chunks");
+        for (DocumentChunk chunk : chunks) {
+            assertTrue(chunk.getContent().length() <= 600,
+                "No chunk should exceed chunk size limit. Actual length: " + chunk.getContent().length());
+        }
+    }
+
     private DocumentRevision createRevision(Long id) {
         return createRevision(id, "REV-001");
     }

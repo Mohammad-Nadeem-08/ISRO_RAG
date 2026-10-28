@@ -84,10 +84,17 @@ public class AnswerGenerationService {
         "   - If the user asks about a spacecraft's system (such as Chandrayaan-3's propulsion system), but the evidence only describes its launch vehicle or rocket stage (such as LVM3 or CE-20 cryogenic upper stage), you MUST explicitly distinguish them:\n" +
         "     * Clarify that the provided evidence describes the launch vehicle's propulsion, NOT the spacecraft itself.\n" +
         "     * State explicitly that the available evidence is insufficient to establish the requested fact about the spacecraft's propulsion system.\n\n" +
-        "3. INSUFFICIENT EVIDENCE & ABSTENTION:\n" +
+        "3. DEFINITIONAL & GENERAL ENTITY QUERIES:\n" +
+        "   - When the user asks a definitional, identification, or general overview question about an organization or agency (such as 'What is ISRO?' or 'Define ISRO'):\n" +
+        "   - You must check whether the provided EVIDENCE contains an explicit definition, full name, mandate, or organizational overview of that entity.\n" +
+        "   - An incidental mention of the entity name in a sentence describing a rocket engine, launch vehicle, or subsystem (for example: 'The CE-20 is an engine developed by ISRO for the LVM3...') DOES NOT define what the organization is.\n" +
+        "   - If the provided evidence only describes specific subsystems, rocket stages, or engines and DOES NOT define or describe the organization itself, you MUST explicitly state:\n" +
+        "     \"The available indexed documents do not provide enough information to answer this question. The current corpus only contains technical documentation regarding specific launch vehicle components (such as the CE-20 cryogenic engine and CUS upper stage). An authoritative ISRO overview document must be ingested before this question can be answered from indexed evidence.\"\n" +
+        "   - Under no circumstances should you attempt to answer an organizational definition question by describing unrelated engine specifications or hardware.\n\n" +
+        "4. INSUFFICIENT EVIDENCE & ABSTENTION:\n" +
         "   - If the retrieved evidence does not directly answer the question or lacks verified facts for the requested entity, you MUST explicitly state: \"The available evidence is insufficient to establish [the requested fact].\"\n" +
         "   - Clearly separate related background context from verified facts.\n\n" +
-        "4. CITATION RULES:\n" +
+        "5. CITATION RULES:\n" +
         "   - Cite sources strictly using exact format [Source N] where N corresponds to the source number from the EVIDENCE list.\n" +
         "   - Every claim must be supported by the cited source chunk.\n" +
         "   - Never cite source numbers that are not provided in the evidence.";
@@ -147,12 +154,29 @@ public class AnswerGenerationService {
             // Generate answer using LLM
             String generatedText = generateLLMResponse(query, context, evidence);
 
+            // Guard against answering general definition questions with unrelated subsystem/engine specs
+            if (isDefinitionalQuery(query) && !evidenceDefinesEntity(evidence, "isro")) {
+                if (!isInsufficientEvidenceAnswer(generatedText)) {
+                    log.warn("Query asks to define ISRO, but evidence does not contain an organizational definition. Enforcing explicit abstention.");
+                    generatedText = "The available indexed documents do not provide enough information to answer this question. " +
+                            "The current corpus only contains technical documentation regarding specific launch vehicle components " +
+                            "(such as the CE-20 cryogenic engine and CUS upper stage). An authoritative ISRO overview document " +
+                            "must be ingested before this question can be answered from indexed evidence.";
+                }
+            }
+
             // Extract citations with claim support and validity verification
             List<String> invalidCitations = new ArrayList<>();
             List<Citation> citations = extractCitations(generatedText, evidence, invalidCitations);
 
             // Clean answer text (remove citation patterns)
             String cleanAnswer = cleanAnswerText(generatedText);
+
+            // If the answer is an explicit abstention, clear citations
+            if (isInsufficientEvidenceAnswer(cleanAnswer)) {
+                citations = Collections.emptyList();
+                invalidCitations.clear();
+            }
 
             // Build response
             answer.setAnswerText(cleanAnswer);
@@ -166,7 +190,7 @@ public class AnswerGenerationService {
             long validCount = citations.stream()
                     .filter(c -> c.getClaimSupported() == null || c.getClaimSupported())
                     .count();
-            answer.setCitationCoverage((float) validCount / evidence.size());
+            answer.setCitationCoverage(citations.isEmpty() ? 0.0f : (float) validCount / evidence.size());
 
             log.info("Generated answer for query '{}' with {} valid citations ({} invalid) from {} evidence items",
                     query, citations.size(), invalidCitations.size(), evidence.size());
@@ -299,6 +323,7 @@ public class AnswerGenerationService {
         userMsg.put("content", context + "\nQUESTION:\n" + query +
                 "\n\nPlease provide a clear, concise, factually grounded answer. " +
                 "When citing sources, use format: [Source N] where N is the source number. " +
+                "If the query asks for a definition or overview of an organization (such as 'What is ISRO?') and the evidence only describes specific rocket engines or vehicle stages without defining the organization itself, explicitly state that the available indexed documents do not provide enough information to answer this question and that the current corpus only contains technical documentation for specific launch vehicle components. " +
                 "If the evidence only describes a launch vehicle or related system and does not contain verified information about the requested spacecraft/subject, explicitly distinguish them and state that the available evidence is insufficient to establish the requested fact.");
         messages.add(userMsg);
 
@@ -399,6 +424,20 @@ public class AnswerGenerationService {
             return "The provided evidence describes the CE-20 cryogenic engine used by the LVM3 launch vehicle upper stage [Source 1], " +
                     "which injected the spacecraft into orbit. However, the available evidence is insufficient to establish " +
                     "the propulsion system of the Chandrayaan-3 spacecraft itself.";
+        }
+
+        // Check for definitional query (e.g. What is ISRO?) when evidence lacks definition
+        boolean asksWhatIsIsro = lowerQuery.matches(".*\\b(what\\s+is|who\\s+is|define)\\s+(?:the\\s+)?isro\\b.*")
+                || lowerQuery.equals("isro") || lowerQuery.equals("what is isro?");
+        boolean evidenceHasDefinition = evidence != null && evidence.stream().anyMatch(e -> {
+            String c = (e.getContent() != null ? e.getContent() : "").toLowerCase();
+            return c.contains("space agency") || c.contains("indian space research organisation") || c.contains("isro is the");
+        });
+        if (asksWhatIsIsro && !evidenceHasDefinition) {
+            return "The available indexed documents do not provide enough information to answer this question. " +
+                    "The current corpus only contains technical documentation regarding specific launch vehicle components " +
+                    "(such as the CE-20 cryogenic engine and CUS upper stage). An authoritative ISRO overview document " +
+                    "must be ingested before this question can be answered from indexed evidence.";
         }
 
         // Check for general insufficient evidence / abstention query in mock testing
@@ -559,10 +598,43 @@ public class AnswerGenerationService {
                 || lower.contains("evidence does not contain")
                 || lower.contains("evidence does not provide")
                 || lower.contains("evidence does not establish")
+                || lower.contains("documents do not provide")
+                || lower.contains("do not provide enough information")
+                || lower.contains("not provide enough information")
                 || lower.contains("not mentioned in the provided evidence")
                 || lower.contains("cannot be determined from the provided evidence")
                 || lower.contains("no evidence found")
                 || lower.contains("cannot establish");
+    }
+
+    public boolean isDefinitionalQuery(String query) {
+        if (query == null) return false;
+        String lower = query.toLowerCase().trim();
+        return lower.matches(".*\\b(what\\s+is|who\\s+is|define|meaning\\s+of|stands?\\s+for|tell\\s+me\\s+about)\\s+(?:the\\s+)?(isro|nasa|esa|agency|organisation|organization)\\b.*")
+                || lower.equals("what is isro?") || lower.equals("what is isro") || lower.equals("isro") || lower.equals("isro?");
+    }
+
+    public boolean evidenceDefinesEntity(List<RetrievalResultDTO> evidence, String entity) {
+        if (evidence == null || evidence.isEmpty() || entity == null) return false;
+        String e = entity.toLowerCase();
+        return evidence.stream().anyMatch(chunk -> {
+            String c = (chunk.getContent() != null ? chunk.getContent() : "").toLowerCase();
+            String t = (chunk.getSectionTitle() != null ? chunk.getSectionTitle() : "").toLowerCase();
+            String combined = c + " " + t;
+            return combined.contains(e + " is the")
+                    || combined.contains(e + " is an")
+                    || combined.contains(e + " is a")
+                    || combined.contains(e + " was established")
+                    || combined.contains(e + " was founded")
+                    || combined.contains(e + " stands for")
+                    || combined.contains("indian space research organisation")
+                    || combined.contains("national space agency")
+                    || combined.contains("space agency of india")
+                    || combined.contains("primary mandate")
+                    || combined.contains("department of space")
+                    || combined.contains("about " + e)
+                    || combined.contains("overview of " + e);
+        });
     }
 
     /**

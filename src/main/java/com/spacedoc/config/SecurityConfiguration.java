@@ -14,12 +14,31 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.client.RestTemplate;
 
+import org.springframework.security.web.authentication.DelegatingAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.MediaType;
+
+import java.util.LinkedHashMap;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        LinkedHashMap<RequestMatcher, AuthenticationEntryPoint> entryPoints = new LinkedHashMap<>();
+        entryPoints.put(new AntPathRequestMatcher("/api/**"), (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.getWriter().write("{\"jobKey\":null,\"status\":\"FAILED\",\"errorMessage\":\"Authentication required. Session may have expired. Please log in again.\",\"progressPercent\":0}");
+        });
+        DelegatingAuthenticationEntryPoint delegatingEntryPoint = new DelegatingAuthenticationEntryPoint(entryPoints);
+        delegatingEntryPoint.setDefaultEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
+
         http
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/system/health").permitAll()
@@ -35,7 +54,18 @@ public class SecurityConfiguration {
                         .permitAll()
                         .logoutSuccessUrl("/login?logout"))
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(delegatingEntryPoint)
+                        .defaultAccessDeniedHandlerFor(
+                                (request, response, accessDeniedException) -> {
+                                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                                    response.getWriter().write("{\"jobKey\":null,\"status\":\"FAILED\",\"errorMessage\":\"Access denied or invalid CSRF token.\",\"progressPercent\":0}");
+                                },
+                                new AntPathRequestMatcher("/api/**")
+                        )
+                );
 
         return http.build();
     }
