@@ -1,526 +1,1030 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-    <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-        <style>
-            .evidence-item {
-                background: #ffffff;
-                border: 1px solid var(--neutral-border, #e2e8f0);
-                border-left: 3px solid var(--primary, #2563eb);
-                border-radius: 6px;
-                padding: 12px;
-                margin-bottom: 12px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-                transition: all 0.2s ease;
-                word-break: break-word;
-                overflow-wrap: break-word;
-            }
-            .evidence-item:hover {
-                border-color: #cbd5e1;
-                border-left-color: var(--primary, #2563eb);
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
-            }
-            .evidence-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 6px;
-                gap: 8px;
-            }
-            .evidence-source-title {
-                font-weight: 600;
-                font-size: 13px;
-                color: var(--primary, #2563eb);
-            }
-            .evidence-score-badge {
-                font-size: 10px;
-                font-weight: 600;
-                background: #eff6ff;
-                color: #1d4ed8;
-                border: 1px solid #bfdbfe;
-                border-radius: 4px;
-                padding: 2px 6px;
-                white-space: nowrap;
-            }
-            .evidence-doc-title {
-                font-size: 11px;
-                font-weight: 600;
-                color: #334155;
-                margin-bottom: 4px;
-                word-break: break-word;
-                overflow-wrap: break-word;
-            }
-            .evidence-text {
-                font-size: 12px;
-                color: #475569;
-                line-height: 1.5;
-                margin-bottom: 8px;
-                word-break: break-word;
-                overflow-wrap: break-word;
-            }
-            .evidence-meta {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 6px;
-                font-size: 11px;
-                color: #64748b;
-                border-top: 1px solid #f1f5f9;
-                padding-top: 6px;
-            }
-            .evidence-meta-tag {
-                display: inline-flex;
-                align-items: center;
-                background: #f8fafc;
-                border: 1px solid #e2e8f0;
-                border-radius: 4px;
-                padding: 2px 6px;
-                font-size: 10px;
-                color: #64748b;
-                white-space: nowrap;
-            }
-            .evidence-meta-tag i {
-                margin-right: 4px;
-                color: #94a3b8;
-            }
-            #evidence-panel {
-                max-height: 520px;
-                overflow-y: auto;
-                padding-right: 4px;
-            }
-            #evidence-panel::-webkit-scrollbar {
-                width: 5px;
-            }
-            #evidence-panel::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 3px;
-            }
-        </style>
+<style>
+    /* Research Assistant Layout */
+    .assistant-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+        align-items: start;
+    }
 
-        <div class="page-header">
-            <h1 class="page-title">Research Assistant</h1>
-            <p class="page-subtitle">Ask questions about your documents</p>
-        </div>
+    @media (max-width: 1080px) {
+        .assistant-grid {
+            grid-template-columns: 1fr 320px;
+            gap: 18px;
+        }
+    }
 
-        <div class="row">
-            <div class="col-md-8">
-                <div class="conversation-thread">
-                    <div id="message-container"
-                        style="min-height: 400px; max-height: 600px; overflow-y: auto; margin-bottom: 20px;">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">
-                                <i class="fas fa-comments"></i>
-                            </div>
-                            <div class="empty-state-title">Welcome to Research Assistant</div>
-                            <p>Ask a question about your documents to get started</p>
-                        </div>
-                    </div>
+    @media (max-width: 991.98px) {
+        .assistant-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 
-                    <!-- Error/Success Messages -->
-                    <div id="error-message" class="error-message"></div>
-                    <div id="success-message" class="success-message"></div>
+    /* Main Conversation Card */
+    .chat-card {
+        background: #ffffff;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 165px);
+        min-height: 580px;
+    }
 
-                    <!-- Loading Indicator -->
-                    <div id="loading-indicator" class="loading-spinner">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 text-muted">Generating answer...</p>
-                    </div>
+    .chat-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fafbfc;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
 
-                    <!-- Query Input -->
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="query-input" placeholder="Ask a question..."
-                            autofocus>
-                        <button class="button-primary" id="submit-btn" type="button">
-                            <i class="fas fa-paper-plane"></i> Ask
-                        </button>
-                    </div>
+    .chat-header-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-                    <button class="button-secondary" id="clear-btn" type="button" style="width: 100%;">
-                        <i class="fas fa-trash"></i> Clear Conversation
-                    </button>
-                </div>
-            </div>
+    .chat-status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--success);
+        box-shadow: 0 0 6px var(--success);
+    }
 
-            <!-- Evidence Panel -->
-            <div class="col-md-4">
-                <div class="metric-card">
-                    <h5 class="mb-3">
-                        <i class="fas fa-layer-group"></i> Evidence
-                    </h5>
-                    <div id="evidence-panel">
-                        <div class="empty-state" style="padding: 20px;">
-                            <i class="fas fa-inbox" style="font-size: 24px; opacity: 0.3; margin-bottom: 10px;"></i>
-                            <div style="font-size: 13px; color: #64748b;">
-                                Evidence will appear here when you ask a question
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    .chat-header-title {
+        font-size: 14.5px;
+        font-weight: 600;
+        color: var(--text-main);
+        margin: 0;
+    }
 
-                <!-- Answer Metrics -->
-                <div class="metric-card mt-3">
-                    <h5 class="mb-3">
-                        <i class="fas fa-chart-pie"></i> Metrics
-                    </h5>
-                    <div id="metrics-panel">
-                        <small class="text-muted">Ask a question to see metrics</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+    .chat-header-subtitle {
+        font-size: 11.5px;
+        color: var(--text-muted);
+    }
 
-        <script>
-            function getCsrfHeaders() {
-                const tokenMeta = document.querySelector('meta[name="_csrf"]');
-                const headerMeta = document.querySelector('meta[name="_csrf_header"]');
-                if (tokenMeta && headerMeta) {
-                    return {
-                        [headerMeta.getAttribute('content')]: tokenMeta.getAttribute('content')
-                    };
-                }
-                return {};
-            }
+    /* Message Stream */
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        scroll-behavior: smooth;
+    }
 
-            let conversationHistory = [];
+    /* Custom Scrollbar */
+    .chat-messages::-webkit-scrollbar, .evidence-stream::-webkit-scrollbar {
+        width: 6px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb, .evidence-stream::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
 
-            document.addEventListener('DOMContentLoaded', function () {
-                document.getElementById('submit-btn').addEventListener('click', submitQuery);
-                document.getElementById('query-input').addEventListener('keypress', function (e) {
-                    if (e.key === 'Enter') submitQuery();
-                });
-                document.getElementById('clear-btn').addEventListener('click', clearConversation);
-                loadConversationHistory();
-            });
+    /* Message Rows & Avatars */
+    .message-row {
+        display: flex;
+        gap: 14px;
+        max-width: 90%;
+    }
 
-            function submitQuery() {
-                const query = document.getElementById('query-input').value.trim();
+    .message-row.user {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
 
-                if (!query) {
-                    showError('Please enter a question');
-                    return;
-                }
+    .message-row.assistant {
+        align-self: flex-start;
+    }
 
-                // Add user message to UI
-                addMessage('user', query);
+    .message-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
 
-                // Clear input and show loading
-                document.getElementById('query-input').value = '';
-                showLoading(true);
+    .message-row.user .message-avatar {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        color: white;
+    }
 
-                // Call API
-                fetch('/api/rag/ask', {
-                    method: 'POST',
-                    headers: Object.assign({
-                        'Content-Type': 'application/json'
-                    }, getCsrfHeaders()),
-                    body: JSON.stringify({
-                        query: query,
-                        topK: 5
-                    })
-                })
-                    .then(r => {
-                        if (!r.ok) throw new Error('API error: ' + r.status);
-                        return r.json();
-                    })
-                    .then(data => {
-                        showLoading(false);
+    .message-row.assistant .message-avatar {
+        background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+        color: var(--accent-cyan);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
 
-                        // Add answer message
-                        const answerHtml = formatAnswer(data);
-                        addMessage('assistant', answerHtml);
+    /* Message Bubbles */
+    .message-bubble {
+        padding: 14px 18px;
+        border-radius: var(--radius-lg);
+        font-size: 13.5px;
+        line-height: 1.6;
+        position: relative;
+        word-break: break-word;
+    }
 
-                        // Display evidence safely
-                        displayEvidence(data.evidence);
+    .message-row.user .message-bubble {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        color: #ffffff;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+    }
 
-                        // Display metrics
-                        displayMetrics(data);
+    .message-row.assistant .message-bubble {
+        background: #ffffff;
+        color: var(--text-main);
+        border: 1px solid var(--border-subtle);
+        border-bottom-left-radius: 4px;
+        box-shadow: var(--shadow-subtle);
+    }
 
-                        // Store in history
-                        conversationHistory.push({
-                            query: query,
-                            answer: data.answer,
-                            citations: data.citations,
-                            evidence: data.evidence,
-                            confidence: data.confidence,
-                            timestamp: new Date()
-                        });
+    /* Markdown Formatted Elements inside Assistant Bubbles */
+    .markdown-content p {
+        margin: 0 0 10px 0;
+    }
+    .markdown-content p:last-child {
+        margin-bottom: 0;
+    }
 
-                        showSuccess('Answer generated successfully');
-                    })
-                    .catch(e => {
-                        showLoading(false);
-                        console.error('Error:', e);
-                        addMessage('assistant', `<div class="alert alert-danger">Error: \${escapeHtml(e.message)}</div>`);
-                        showError('Failed to generate answer: ' + e.message);
-                    });
-            }
+    .markdown-content h1, .markdown-content h2, .markdown-content h3, .markdown-content h4 {
+        color: var(--text-main);
+        font-weight: 700;
+        margin: 14px 0 8px 0;
+        letter-spacing: -0.3px;
+    }
+    .markdown-content h1 { font-size: 17px; }
+    .markdown-content h2 { font-size: 15.5px; }
+    .markdown-content h3 { font-size: 14.5px; }
 
-            function formatAnswer(data) {
-                if (!data || !data.answer) {
-                    return '<div class="alert alert-warning">No answer generated</div>';
-                }
+    .markdown-content ul, .markdown-content ol {
+        margin: 6px 0 10px 0;
+        padding-left: 20px;
+    }
 
-                // Safely escape the answer text first to prevent XSS
-                let text = escapeHtml(data.answer);
+    .markdown-content li {
+        margin-bottom: 4px;
+    }
 
-                // Replace [Source N] patterns with clickable citation badges
-                text = text.replace(/\[(?:Source|Citation|Chunk)?[\\s\\h\\xA0]*#?(\\d+)\]/gi, (match, p1) => {
-                    const idx = parseInt(p1, 10) - 1;
-                    return `<span class="citation" onclick="highlightEvidence(\${idx})" title="Jump to Source \${p1}">Source \${p1}</span>`;
-                });
+    .markdown-content strong {
+        color: #0f172a;
+        font-weight: 600;
+    }
 
-                let formatted = `<div>\${text}</div>`;
+    .markdown-content code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        background: #f1f5f9;
+        color: #0f172a;
+        padding: 2px 6px;
+        border-radius: 4px;
+        border: 1px solid #e2e8f0;
+    }
 
-                if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
-                    formatted += '<div class="mt-2 pt-2 border-top" style="border-color: rgba(0,0,0,0.06) !important;"><small class="text-muted d-block mb-1" style="font-size: 11px;">Referenced Sources:</small>';
-                    data.citations.forEach((c) => {
-                        const sNum = c.sourceNumber != null ? c.sourceNumber : 1;
-                        const idx = sNum - 1;
-                        formatted += `<span class="citation" onclick="highlightEvidence(\${idx})" title="Jump to Source \${sNum}">Source \${sNum}</span> `;
-                    });
-                    formatted += '</div>';
-                }
+    .markdown-content pre {
+        background: #0b0f19;
+        color: #e2e8f0;
+        padding: 12px 14px;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        margin: 10px 0;
+        border: 1px solid rgba(255,255,255,0.08);
+    }
 
-                return formatted;
-            }
+    .markdown-content pre code {
+        background: transparent;
+        color: inherit;
+        padding: 0;
+        border: none;
+    }
 
-            function displayEvidence(evidence) {
-                const container = document.getElementById('evidence-panel');
-                if (!container) return;
+    .markdown-content blockquote {
+        border-left: 3px solid var(--primary);
+        padding-left: 12px;
+        margin: 10px 0;
+        color: var(--text-secondary);
+        font-style: italic;
+    }
 
-                // Safely clear previous evidence content
-                container.textContent = '';
+    /* Interactive Citation Pills */
+    .citation-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        padding: 1px 7px;
+        border-radius: var(--radius-full);
+        font-size: 11px;
+        font-weight: 600;
+        margin: 0 3px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        vertical-align: middle;
+    }
 
-                if (!evidence || !Array.isArray(evidence) || evidence.length === 0) {
-                    const emptyAlert = document.createElement('div');
-                    emptyAlert.className = 'alert alert-info';
-                    emptyAlert.style.fontSize = '12px';
-                    emptyAlert.textContent = 'No evidence found';
-                    container.appendChild(emptyAlert);
-                    return;
-                }
+    .citation-pill:hover {
+        background: #dbeafe;
+        color: #1e40af;
+        border-color: #93c5fd;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.15);
+    }
 
-                evidence.forEach((item, idx) => {
-                    if (!item) return;
+    /* Chat Input Bar */
+    .chat-input-bar {
+        padding: 16px 20px;
+        border-top: 1px solid var(--border-subtle);
+        background: #fafbfc;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
 
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'evidence-item';
-                    itemDiv.id = 'evidence-' + idx;
+    .chat-input-wrapper {
+        display: flex;
+        gap: 10px;
+        background: #ffffff;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 4px 6px 4px 14px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
 
-                    // Header: Source Title and Relevance Score Badge
-                    const headerDiv = document.createElement('div');
-                    headerDiv.className = 'evidence-header';
+    .chat-input-wrapper:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
 
-                    const sourceTitle = document.createElement('span');
-                    sourceTitle.className = 'evidence-source-title';
-                    sourceTitle.textContent = 'Source ' + (idx + 1);
-                    headerDiv.appendChild(sourceTitle);
+    .chat-input-field {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 13.5px;
+        color: var(--text-main);
+        background: transparent;
+        padding: 8px 0;
+    }
 
-                    if (item.relevanceScore != null) {
-                        const scoreSpan = document.createElement('span');
-                        scoreSpan.className = 'evidence-score-badge';
-                        const scoreVal = typeof item.relevanceScore === 'number' ? item.relevanceScore : parseFloat(item.relevanceScore);
-                        const pct = scoreVal <= 0.05 ? Math.min(100, Math.round((scoreVal / 0.01639) * 100)) : Math.round(scoreVal * 100);
-                        scoreSpan.textContent = 'Score: ' + (isNaN(pct) ? 'N/A' : pct + '%');
-                        headerDiv.appendChild(scoreSpan);
-                    }
-                    itemDiv.appendChild(headerDiv);
+    .chat-input-field::placeholder {
+        color: var(--text-light);
+    }
 
-                    // Document Title if present
-                    if (item.documentTitle && item.documentTitle.trim()) {
-                        const docTitleDiv = document.createElement('div');
-                        docTitleDiv.className = 'evidence-doc-title';
-                        docTitleDiv.textContent = item.documentTitle.trim();
-                        itemDiv.appendChild(docTitleDiv);
-                    }
+    .starter-prompts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+    }
 
-                    // Content snippet safely inserted as textContent (NOT innerHTML)
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'evidence-text';
-                    const rawContent = item.content || '';
-                    const truncated = rawContent.length > 220 ? rawContent.substring(0, 220) + '...' : rawContent;
-                    contentDiv.textContent = truncated;
-                    itemDiv.appendChild(contentDiv);
+    .starter-chip {
+        background: #f1f5f9;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-full);
+        padding: 5px 12px;
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
 
-                    // Metadata container
-                    const metaDiv = document.createElement('div');
-                    metaDiv.className = 'evidence-meta';
+    .starter-chip:hover {
+        background: #e2e8f0;
+        color: var(--primary);
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
 
-                    // Section Title
-                    if (item.sectionTitle && item.sectionTitle.trim()) {
-                        const sectionTag = document.createElement('span');
-                        sectionTag.className = 'evidence-meta-tag';
-                        sectionTag.innerHTML = '<i class="fas fa-bookmark"></i>';
-                        sectionTag.appendChild(document.createTextNode('Section: ' + item.sectionTitle.trim()));
-                        metaDiv.appendChild(sectionTag);
-                    }
+    /* Evidence Sidebar */
+    .evidence-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
 
-                    // Page Number
-                    if (item.pageNumber != null) {
-                        const pageTag = document.createElement('span');
-                        pageTag.className = 'evidence-meta-tag';
-                        pageTag.innerHTML = '<i class="fas fa-file-alt"></i>';
-                        pageTag.appendChild(document.createTextNode('Page ' + item.pageNumber));
-                        metaDiv.appendChild(pageTag);
-                    }
+    .evidence-card {
+        background: #ffffff;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        padding: 18px;
+    }
 
-                    // Chunk ID & Revision ID
-                    if (item.chunkId != null || item.revisionId != null) {
-                        const chunkTag = document.createElement('span');
-                        chunkTag.className = 'evidence-meta-tag';
-                        chunkTag.innerHTML = '<i class="fas fa-cube"></i>';
-                        let chunkText = '';
-                        if (item.chunkId != null) chunkText += 'Chunk #' + item.chunkId;
-                        if (item.revisionId != null) chunkText += (chunkText ? ' (Rev ' : 'Rev ') + item.revisionId + (item.chunkId != null ? ')' : '');
-                        chunkTag.appendChild(document.createTextNode(chunkText));
-                        metaDiv.appendChild(chunkTag);
-                    }
+    .evidence-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-subtle);
+    }
 
-                    // Conflict status if any
-                    if (item.conflictStatus && item.conflictStatus !== 'NO_CONFLICT') {
-                        const conflictTag = document.createElement('span');
-                        conflictTag.className = 'evidence-meta-tag';
-                        conflictTag.style.borderColor = '#fde68a';
-                        conflictTag.style.background = '#fffbeb';
-                        conflictTag.style.color = '#b45309';
-                        conflictTag.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #d97706;"></i>';
-                        conflictTag.appendChild(document.createTextNode(item.conflictStatus));
-                        metaDiv.appendChild(conflictTag);
-                    }
+    .evidence-header-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-main);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-                    itemDiv.appendChild(metaDiv);
-                    container.appendChild(itemDiv);
-                });
-            }
+    .evidence-stream {
+        max-height: 480px;
+        overflow-y: auto;
+        padding-right: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
 
-            function displayMetrics(data) {
-                const container = document.getElementById('metrics-panel');
-                const confidence = data.confidence || 0;
-                const coverage = data.citationCoverage || 0;
+    .evidence-item-box {
+        background: #f8fafc;
+        border: 1px solid var(--border-subtle);
+        border-left: 3px solid var(--primary);
+        border-radius: var(--radius-md);
+        padding: 12px;
+        transition: all 0.2s ease;
+    }
 
-                const confidenceColor = confidence > 0.7 ? '#10b981' : confidence > 0.4 ? '#f59e0b' : '#ef4444';
-                const coverageColor = coverage > 0.7 ? '#10b981' : coverage > 0.4 ? '#f59e0b' : '#ef4444';
+    .evidence-item-box:hover {
+        border-color: #cbd5e1;
+        border-left-color: var(--primary);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+        background: #ffffff;
+    }
 
-                html = `
+    .evidence-item-box.highlighted {
+        border-color: #3b82f6 !important;
+        border-left-color: #2563eb !important;
+        background: #eff6ff !important;
+        box-shadow: 0 0 12px rgba(37, 99, 235, 0.25) !important;
+    }
+
+    .evidence-item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .evidence-item-source {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .evidence-item-score {
+        font-size: 10px;
+        font-weight: 600;
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .evidence-item-text {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+
+    .evidence-item-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 10.5px;
+        color: var(--text-muted);
+        border-top: 1px solid #f1f5f9;
+        padding-top: 6px;
+    }
+
+    .evidence-meta-pill {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        padding: 1px 6px;
+    }
+
+    /* Metrics Summary Card */
+    .metrics-summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .metric-chip {
+        background: #f8fafc;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 8px 10px;
+    }
+
+    .metric-chip-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .metric-chip-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-top: 2px;
+    }
+</style>
+
+<div class="page-header">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
         <div>
-            <div style="margin-bottom: 15px;">
-                <small style="color: #64748b; display: block; margin-bottom: 4px;">Confidence</small>
-                <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
-                    <div style="background: \${confidenceColor}; height: 100%; width: \${confidence * 100}%; transition: width 0.3s;"></div>
-                </div>
-                <small style="color: #64748b; display: block; margin-top: 4px;">\${(confidence * 100).toFixed(0)}%</small>
-            </div>
+            <h1 class="page-title">Research Assistant</h1>
+            <p class="page-subtitle">Grounded technical question-answering with citation validation</p>
+        </div>
+        <button class="button-secondary" id="clear-btn" type="button" title="Clear current session messages">
+            <i class="fas fa-trash-alt text-danger"></i>
+            <span>Clear History</span>
+        </button>
+    </div>
+</div>
 
-            <div style="margin-bottom: 15px;">
-                <small style="color: #64748b; display: block; margin-bottom: 4px;">Citation Coverage</small>
-                <div style="background: #f1f5f9; height: 6px; border-radius: 3px; overflow: hidden;">
-                    <div style="background: \${coverageColor}; height: 100%; width: \${coverage * 100}%; transition: width 0.3s;"></div>
-                </div>
-                <small style="color: #64748b; display: block; margin-top: 4px;">\${(coverage * 100).toFixed(0)}%</small>
-            </div>
+<!-- Alert Containers -->
+<div id="error-message" class="error-message">
+    <i class="fas fa-exclamation-circle text-danger"></i>
+    <span id="error-text">An error occurred</span>
+</div>
+<div id="success-message" class="success-message">
+    <i class="fas fa-check-circle text-success"></i>
+    <span id="success-text">Operation completed</span>
+</div>
 
-            <div>
-                <small style="color: #64748b; display: block;">Evidence Items: <strong style="color: #1e293b;">\${data.evidenceCount || 0}</strong></small>
-                <small style="color: #64748b; display: block;">Citations: <strong style="color: #1e293b;">\${(data.citations && data.citations.length) || 0}</strong></small>
+<!-- Assistant Main Grid -->
+<div class="assistant-grid">
+    <!-- Conversation Column -->
+    <div class="chat-card">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <span class="chat-status-indicator"></span>
+                <div>
+                    <div class="chat-header-title">Technical Inquiry Session</div>
+                    <div class="chat-header-subtitle">Groq GPT-OSS • Ollama Vector Retrieval</div>
+                </div>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 11px;">Hybrid RRF</span>
+        </div>
+
+        <!-- Scrollable Message Stream -->
+        <div class="chat-messages" id="message-container">
+            <!-- Welcome Empty State -->
+            <div class="empty-state my-auto" id="welcome-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-satellite text-primary"></i>
+                </div>
+                <div class="empty-state-title">Welcome to SpaceDoc Intelligence</div>
+                <p style="font-size: 13.5px; max-width: 480px; margin: 0 auto 16px;">
+                    Ask technical questions across your ingested ISRO mission specifications, reports, and orbital data.
+                </p>
+                <div class="starter-prompts justify-content-center">
+                    <div class="starter-chip" onclick="applyStarterPrompt('What is Chandrayaan-3\'s propulsion system?')">
+                        <i class="fas fa-fire-alt text-warning"></i> Chandrayaan-3 Propulsion
+                    </div>
+                    <div class="starter-chip" onclick="applyStarterPrompt('What observations did Aditya-L1 make according to ISRO?')">
+                        <i class="fas fa-sun text-warning"></i> Aditya-L1 Observations
+                    </div>
+                    <div class="starter-chip" onclick="applyStarterPrompt('Tell me about the CE-20 cryogenic upper stage engine.')">
+                        <i class="fas fa-cog text-info"></i> CE-20 Cryogenic Engine
+                    </div>
+                    <div class="starter-chip" onclick="applyStarterPrompt('What recent missions are published on the ISRO portal?')">
+                        <i class="fas fa-globe text-primary"></i> Recent ISRO Portal Missions
+                    </div>
+                </div>
             </div>
         </div>
-    `;
 
-                container.innerHTML = html;
+        <!-- Chat Input Bar -->
+        <div class="chat-input-bar">
+            <div class="chat-input-wrapper">
+                <i class="fas fa-search text-muted my-auto ms-1"></i>
+                <input type="text" class="chat-input-field" id="query-input" placeholder="Type an ISRO technical query (e.g. telemetry, propulsion, orbits)..." autofocus>
+                <button class="button-primary py-2 px-3" id="submit-btn" type="button">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Ask</span>
+                </button>
+            </div>
+            <div class="d-flex align-items-center justify-content-between mt-2 px-1">
+                <small class="text-muted" style="font-size: 11px;">
+                    <i class="fas fa-info-circle me-1"></i> Press <strong>Enter</strong> to submit. Answers cite indexed evidence chunks.
+                </small>
+                <small class="text-muted" style="font-size: 11px;">
+                    Citations are strictly validated
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evidence & Metrics Sidebar -->
+    <div class="evidence-sidebar">
+        <!-- Retrieved Evidence Card -->
+        <div class="evidence-card">
+            <div class="evidence-header-row">
+                <h5 class="evidence-header-title">
+                    <i class="fas fa-layer-group text-primary"></i>
+                    <span>Retrieved Evidence</span>
+                </h5>
+                <span class="badge bg-light text-secondary border" id="evidence-count-badge">0 sources</span>
+            </div>
+            
+            <div class="evidence-stream" id="evidence-panel">
+                <div class="empty-state py-4 text-center">
+                    <i class="fas fa-inbox text-light mb-2" style="font-size: 26px;"></i>
+                    <div style="font-size: 12.5px; color: #64748b;">
+                        Retrieved evidence chunks will populate here with similarity scores and metadata.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grounding & RAG Metrics Card -->
+        <div class="evidence-card">
+            <div class="evidence-header-row">
+                <h5 class="evidence-header-title">
+                    <i class="fas fa-chart-pie text-success"></i>
+                    <span>Session Telemetry</span>
+                </h5>
+                <span class="badge bg-success-subtle text-success" id="confidence-badge">Ready</span>
+            </div>
+            
+            <div class="metrics-summary-grid" id="metrics-panel">
+                <div class="metric-chip">
+                    <div class="metric-chip-label">LLM Engine</div>
+                    <div class="metric-chip-value" style="font-size: 12px;">Groq GPT-OSS</div>
+                </div>
+                <div class="metric-chip">
+                    <div class="metric-chip-label">Embedding</div>
+                    <div class="metric-chip-value" style="font-size: 12px;">768d nomic</div>
+                </div>
+                <div class="metric-chip">
+                    <div class="metric-chip-label">Confidence</div>
+                    <div class="metric-chip-value" id="val-confidence">-</div>
+                </div>
+                <div class="metric-chip">
+                    <div class="metric-chip-label">Citations</div>
+                    <div class="metric-chip-value" id="val-citations">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCsrfHeaders() {
+        const tokenMeta = document.querySelector('meta[name="_csrf"]');
+        const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+        if (tokenMeta && headerMeta) {
+            return {
+                [headerMeta.getAttribute('content')]: tokenMeta.getAttribute('content')
+            };
+        }
+        return {};
+    }
+
+    let conversationHistory = [];
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const submitBtn = document.getElementById('submit-btn');
+        const queryInput = document.getElementById('query-input');
+        const clearBtn = document.getElementById('clear-btn');
+
+        if (submitBtn) submitBtn.addEventListener('click', submitQuery);
+        if (queryInput) {
+            queryInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') submitQuery();
+            });
+        }
+        if (clearBtn) clearBtn.addEventListener('click', clearConversation);
+    });
+
+    function applyStarterPrompt(promptText) {
+        const input = document.getElementById('query-input');
+        if (input) {
+            input.value = promptText;
+            submitQuery();
+        }
+    }
+
+    function submitQuery() {
+        const queryInput = document.getElementById('query-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const query = queryInput.value.trim();
+
+        if (!query) {
+            showError('Please enter a question');
+            return;
+        }
+
+        // Hide welcome state
+        const welcomeState = document.getElementById('welcome-state');
+        if (welcomeState) welcomeState.style.display = 'none';
+
+        // Add user message
+        addMessage('user', query);
+
+        // Clear input and disable button
+        queryInput.value = '';
+        submitBtn.disabled = true;
+
+        // Show loading bubble
+        const loadingId = addLoadingBubble();
+
+        fetch('/api/rag/ask', {
+            method: 'POST',
+            headers: Object.assign({
+                'Content-Type': 'application/json'
+            }, getCsrfHeaders()),
+            body: JSON.stringify({
+                query: query,
+                topK: 5
+            })
+        })
+        .then(r => {
+            if (!r.ok) throw new Error('API error: ' + r.status);
+            return r.json();
+        })
+        .then(data => {
+            removeMessage(loadingId);
+            submitBtn.disabled = false;
+
+            // Render Markdown-formatted answer
+            const answerHtml = formatAnswer(data);
+            addMessage('assistant', answerHtml);
+
+            // Display evidence chunks
+            displayEvidence(data.evidence);
+
+            // Update telemetry
+            displayMetrics(data);
+
+            conversationHistory.push({
+                query: query,
+                answer: data.answer,
+                citations: data.citations,
+                evidence: data.evidence,
+                confidence: data.confidenceScore,
+                timestamp: new Date()
+            });
+        })
+        .catch(e => {
+            removeMessage(loadingId);
+            submitBtn.disabled = false;
+            console.error('Error:', e);
+            addMessage('assistant', `<div class="alert alert-danger mb-0" style="font-size: 13px;"><i class="fas fa-exclamation-triangle me-1"></i> Failed to generate answer: \${escapeHtml(e.message)}</div>`);
+            showError('Failed to generate answer: ' + e.message);
+        });
+    }
+
+    /**
+     * Safe Markdown Parser & Sanitizer
+     * Escapes raw HTML to prevent XSS, converts markdown syntax, and embeds interactive citation pills.
+     */
+    function renderSafeMarkdown(rawText) {
+        if (!rawText) return '';
+
+        // 1. First escape all raw HTML characters to prevent XSS
+        let safe = escapeHtml(rawText);
+
+        // 2. Fenced code blocks ```lang\ncode\n```
+        safe = safe.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function(match, lang, code) {
+            return `<pre><code class="language-\${lang}">\${code.trim()}</code></pre>`;
+        });
+
+        // 3. Inline code `code`
+        safe = safe.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+        // 4. Headers: ###, ##, #
+        safe = safe.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+        safe = safe.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+        safe = safe.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+
+        // 5. Bold & Italics
+        safe = safe.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+        safe = safe.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+        safe = safe.replace(/(^|[^*])\*([^*\n]+)\*([^*]|$)/g, '$1<em>$2</em>$3');
+        safe = safe.replace(/(^|[^_])_([^_\n]+)_([^_]|$)/g, '$1<em>$2</em>$3');
+
+        // 6. Unordered lists: lines starting with * or -
+        safe = safe.replace(/^\s*[-*]\s+(.+)$/gim, '<li>$1</li>');
+        safe = safe.replace(/(<li>.*<\/li>)/gms, '<ul>$1</ul>');
+        // Clean duplicate adjacent <ul> tags
+        safe = safe.replace(/<\/ul>\s*<ul>/g, '');
+
+        // 7. Ordered lists: lines starting with 1. 2. etc
+        safe = safe.replace(/^\s*\d+\.\s+(.+)$/gim, '<li class="ol-item">$1</li>');
+        safe = safe.replace(/(<li class="ol-item">.*<\/li>)/gms, '<ol>$1</ol>');
+        safe = safe.replace(/<\/ol>\s*<ol>/g, '');
+
+        // 8. Paragraphs: double newline to <p>
+        const paragraphs = safe.split(/\n{2,}/);
+        safe = paragraphs.map(p => {
+            p = p.trim();
+            if (!p) return '';
+            if (p.startsWith('<h1>') || p.startsWith('<h2>') || p.startsWith('<h3>') ||
+                p.startsWith('<ul>') || p.startsWith('<ol>') || p.startsWith('<pre>')) {
+                return p;
+            }
+            return `<p>\${p.replace(/\n/g, '<br>')}</p>`;
+        }).join('');
+
+        // 9. Interactive Citation Pills: [Source N], [Citation N], [N]
+        safe = safe.replace(/\[(?:Source|Citation|Chunk)?[\s\h\xA0]*#?(\d+)\]/gi, function(match, p1) {
+            const idx = parseInt(p1, 10) - 1;
+            return `<span class="citation-pill" onclick="highlightEvidence(\${idx})" title="Jump to Source \${p1} in Evidence"><i class="fas fa-bookmark me-1" style="font-size: 9px;"></i>Source \${p1}</span>`;
+        });
+
+        return safe;
+    }
+
+    function formatAnswer(data) {
+        if (!data || !data.answer) {
+            return '<div class="alert alert-warning mb-0" style="font-size: 13px;">No authoritative answer could be derived from indexed evidence.</div>';
+        }
+
+        let formatted = `<div class="markdown-content">\${renderSafeMarkdown(data.answer)}</div>`;
+
+        // Render referenced citations footer if available
+        if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
+            formatted += '<div class="mt-3 pt-2 border-top" style="border-color: #f1f5f9 !important;">';
+            formatted += '<div class="text-muted mb-2 d-flex align-items-center gap-1" style="font-size: 11px; font-weight: 600;"><i class="fas fa-check-circle text-success"></i> Verified Sources:</div>';
+            formatted += '<div class="d-flex flex-wrap gap-1">';
+            data.citations.forEach((c) => {
+                const sNum = c.citationNumber != null ? c.citationNumber : 1;
+                const idx = sNum - 1;
+                const srcTitle = c.sourceTitle ? escapeHtml(c.sourceTitle) : `Source \${sNum}`;
+                formatted += `<span class="citation-pill" onclick="highlightEvidence(\${idx})" title="Jump to \${srcTitle}"><i class="fas fa-bookmark me-1" style="font-size: 9px;"></i>[\${sNum}] \${srcTitle}</span>`;
+            });
+            formatted += '</div></div>';
+        }
+
+        return formatted;
+    }
+
+    function addMessage(sender, contentHtml) {
+        const container = document.getElementById('message-container');
+        if (!container) return;
+
+        const row = document.createElement('div');
+        row.className = `message-row \${sender}`;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-satellite"></i>';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        if (sender === 'user') {
+            bubble.textContent = contentHtml; // User input is pure text
+        } else {
+            bubble.innerHTML = contentHtml; // Assistant output is safe sanitized HTML
+        }
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+        container.appendChild(row);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function addLoadingBubble() {
+        const container = document.getElementById('message-container');
+        if (!container) return null;
+
+        const id = 'loading-' + Date.now();
+        const row = document.createElement('div');
+        row.className = 'message-row assistant';
+        row.id = id;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar';
+        avatar.innerHTML = '<i class="fas fa-satellite"></i>';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble text-muted d-flex align-items-center gap-2';
+        bubble.innerHTML = `
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <span style="font-size: 13px;">Analyzing indexed documents and generating grounded answer...</span>
+        `;
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+        container.appendChild(row);
+        container.scrollTop = container.scrollHeight;
+        return id;
+    }
+
+    function removeMessage(id) {
+        if (!id) return;
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    function displayEvidence(evidence) {
+        const container = document.getElementById('evidence-panel');
+        const countBadge = document.getElementById('evidence-count-badge');
+        if (!container) return;
+
+        container.textContent = '';
+
+        if (!evidence || !Array.isArray(evidence) || evidence.length === 0) {
+            if (countBadge) countBadge.textContent = '0 sources';
+            const empty = document.createElement('div');
+            empty.className = 'empty-state py-4 text-center';
+            empty.innerHTML = `
+                <i class="fas fa-inbox text-light mb-2" style="font-size: 26px;"></i>
+                <div style="font-size: 12.5px; color: #64748b;">No evidence chunks met the similarity threshold.</div>
+            `;
+            container.appendChild(empty);
+            return;
+        }
+
+        if (countBadge) countBadge.textContent = `\${evidence.length} sources`;
+
+        evidence.forEach((item, index) => {
+            const itemBox = document.createElement('div');
+            itemBox.className = 'evidence-item-box';
+            itemBox.id = `evidence-item-\${index}`;
+
+            const header = document.createElement('div');
+            header.className = 'evidence-item-header';
+
+            const sourceTitle = document.createElement('span');
+            sourceTitle.className = 'evidence-item-source';
+            sourceTitle.textContent = `Source \${index + 1}`;
+
+            const score = document.createElement('span');
+            score.className = 'evidence-item-score';
+            const simScore = item.similarityScore != null ? (item.similarityScore * 100).toFixed(1) + '%' : 'Dense+Lexical';
+            score.textContent = simScore;
+
+            header.appendChild(sourceTitle);
+            header.appendChild(score);
+            itemBox.appendChild(header);
+
+            if (item.documentTitle) {
+                const docTitle = document.createElement('div');
+                docTitle.style.fontSize = '12px';
+                docTitle.style.fontWeight = '600';
+                docTitle.style.color = '#1e293b';
+                docTitle.style.marginBottom = '4px';
+                docTitle.textContent = item.documentTitle;
+                itemBox.appendChild(docTitle);
             }
 
-            function addMessage(role, content) {
-                const container = document.getElementById('message-container');
+            const text = document.createElement('div');
+            text.className = 'evidence-item-text';
+            text.textContent = item.chunkText || item.text || '';
+            itemBox.appendChild(text);
 
-                // Clear empty state
-                if (container.querySelector('.empty-state')) {
-                    container.innerHTML = '';
-                }
+            const meta = document.createElement('div');
+            meta.className = 'evidence-item-meta';
 
-                const messageDiv = document.createElement('div');
-                messageDiv.className = role === 'user' ? 'message-user' : 'message-assistant';
-                messageDiv.innerHTML = role === 'user' ? escapeHtml(content) : content;
-
-                container.appendChild(messageDiv);
-                container.scrollTop = container.scrollHeight;
+            if (item.chunkIndex != null) {
+                const chunkPill = document.createElement('span');
+                chunkPill.className = 'evidence-meta-pill';
+                chunkPill.textContent = `Chunk #\${item.chunkIndex}`;
+                meta.appendChild(chunkPill);
             }
 
-            function clearConversation() {
-                if (confirm('Clear all messages?')) {
-                    document.getElementById('message-container').innerHTML = `
-            <div class="empty-state">
+            if (item.revisionNumber != null) {
+                const revPill = document.createElement('span');
+                revPill.className = 'evidence-meta-pill';
+                revPill.textContent = `Rev \${item.revisionNumber}`;
+                meta.appendChild(revPill);
+            }
+
+            itemBox.appendChild(meta);
+            container.appendChild(itemBox);
+        });
+    }
+
+    function highlightEvidence(index) {
+        const item = document.getElementById(`evidence-item-\${index}`);
+        if (!item) return;
+
+        // Remove previous highlights
+        document.querySelectorAll('.evidence-item-box').forEach(el => el.classList.remove('highlighted'));
+
+        item.classList.add('highlighted');
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function displayMetrics(data) {
+        const confBadge = document.getElementById('confidence-badge');
+        const valConf = document.getElementById('val-confidence');
+        const valCit = document.getElementById('val-citations');
+
+        const conf = data.confidenceScore != null ? (data.confidenceScore * 100).toFixed(0) + '%' : 'High';
+        const citCount = (data.citations && Array.isArray(data.citations)) ? data.citations.length : 0;
+
+        if (confBadge) confBadge.textContent = `Confidence: \${conf}`;
+        if (valConf) valConf.textContent = conf;
+        if (valCit) valCit.textContent = `\${citCount} active`;
+    }
+
+    function clearConversation() {
+        const container = document.getElementById('message-container');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="empty-state my-auto" id="welcome-state">
                 <div class="empty-state-icon">
-                    <i class="fas fa-comments"></i>
+                    <i class="fas fa-satellite text-primary"></i>
                 </div>
-                <div class="empty-state-title">Welcome to Research Assistant</div>
-                <p>Ask a question about your documents to get started</p>
+                <div class="empty-state-title">Welcome to SpaceDoc Intelligence</div>
+                <p style="font-size: 13.5px; max-width: 480px; margin: 0 auto 16px;">
+                    Ask technical questions across your ingested ISRO mission specifications, reports, and orbital data.
+                </p>
+                <div class="starter-prompts justify-content-center">
+                    <div class="starter-chip" onclick="applyStarterPrompt('What is Chandrayaan-3\\'s propulsion system?')">
+                        <i class="fas fa-fire-alt text-warning"></i> Chandrayaan-3 Propulsion
+                    </div>
+                    <div class="starter-chip" onclick="applyStarterPrompt('What observations did Aditya-L1 make according to ISRO?')">
+                        <i class="fas fa-sun text-warning"></i> Aditya-L1 Observations
+                    </div>
+                    <div class="starter-chip" onclick="applyStarterPrompt('Tell me about the CE-20 cryogenic upper stage engine.')">
+                        <i class="fas fa-cog text-info"></i> CE-20 Cryogenic Engine
+                    </div>
+                </div>
             </div>
         `;
-                    document.getElementById('evidence-panel').innerHTML = `
-            <div class="empty-state" style="padding: 20px;">
-                <i class="fas fa-inbox" style="font-size: 24px; opacity: 0.3; margin-bottom: 10px;"></i>
-                <div style="font-size: 13px; color: #64748b;">
-                    Evidence will appear here when you ask a question
+
+        const evidencePanel = document.getElementById('evidence-panel');
+        if (evidencePanel) {
+            evidencePanel.innerHTML = `
+                <div class="empty-state py-4 text-center">
+                    <i class="fas fa-inbox text-light mb-2" style="font-size: 26px;"></i>
+                    <div style="font-size: 12.5px; color: #64748b;">Retrieved evidence chunks will populate here.</div>
                 </div>
-            </div>
-        `;
-                    document.getElementById('metrics-panel').innerHTML = '<small class="text-muted">Ask a question to see metrics</small>';
-                    conversationHistory = [];
-                }
-            }
+            `;
+        }
 
-            function loadConversationHistory() {
-                // Placeholder: In a full implementation, fetch conversation history from server
-                // For now, just initialize empty
-                conversationHistory = [];
-            }
+        const countBadge = document.getElementById('evidence-count-badge');
+        if (countBadge) countBadge.textContent = '0 sources';
 
-            function showLoading(show) {
-                const indicator = document.getElementById('loading-indicator');
-                if (show) {
-                    indicator.classList.add('show');
-                } else {
-                    indicator.classList.remove('show');
-                }
-            }
+        conversationHistory = [];
+        showSuccess('Conversation history reset.');
+    }
 
-            function showError(message) {
-                const elem = document.getElementById('error-message');
-                elem.textContent = message;
-                elem.classList.add('show');
-                setTimeout(() => elem.classList.remove('show'), 5000);
-            }
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
 
-            function showSuccess(message) {
-                const elem = document.getElementById('success-message');
-                elem.textContent = message;
-                elem.classList.add('show');
-                setTimeout(() => elem.classList.remove('show'), 3000);
-            }
+    function showError(msg) {
+        const box = document.getElementById('error-message');
+        const text = document.getElementById('error-text');
+        if (box && text) {
+            text.textContent = msg;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 6000);
+        }
+    }
 
-            function escapeHtml(text) {
-                if (!text) return '';
-                const map = {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                };
-                return text.replace(/[&<>"']/g, m => map[m]);
-            }
-
-            function highlightEvidence(idx) {
-                const elem = document.getElementById('evidence-' + idx);
-                if (elem) {
-                    elem.style.transition = 'all 0.3s ease';
-                    elem.style.background = 'rgba(37, 99, 235, 0.12)';
-                    elem.style.borderColor = 'var(--primary, #2563eb)';
-                    elem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    setTimeout(() => {
-                        elem.style.background = '';
-                        elem.style.borderColor = '';
-                    }, 2500);
-                }
-            }
-        </script>
+    function showSuccess(msg) {
+        const box = document.getElementById('success-message');
+        const text = document.getElementById('success-text');
+        if (box && text) {
+            text.textContent = msg;
+            box.classList.add('show');
+            setTimeout(() => box.classList.remove('show'), 4000);
+        }
+    }
+</script>
