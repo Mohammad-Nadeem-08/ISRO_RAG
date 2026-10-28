@@ -2,13 +2,22 @@ package com.spacedoc.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.ui.Model;
 
 @Controller
 public class PageController {
 
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(@RequestParam(value = "logout", required = false) String logout,
+                            @RequestParam(value = "error", required = false) String error,
+                            Model model) {
+        if (logout != null) {
+            model.addAttribute("loggedOut", true);
+        }
+        if (error != null) {
+            model.addAttribute("loginError", true);
+        }
         return "login";
     }
 

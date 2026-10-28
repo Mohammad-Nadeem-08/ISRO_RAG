@@ -154,11 +154,14 @@ public class AnswerGenerationService {
             // Generate answer using LLM
             String generatedText = generateLLMResponse(query, context, evidence);
 
+            // Normalize citation markers (handling Chinese brackets 【 】 and unicode spaces)
+            String normalizedText = normalizeCitationMarkers(generatedText);
+
             // Guard against answering general definition questions with unrelated subsystem/engine specs
             if (isDefinitionalQuery(query) && !evidenceDefinesEntity(evidence, "isro")) {
-                if (!isInsufficientEvidenceAnswer(generatedText)) {
+                if (!isInsufficientEvidenceAnswer(normalizedText)) {
                     log.warn("Query asks to define ISRO, but evidence does not contain an organizational definition. Enforcing explicit abstention.");
-                    generatedText = "The available indexed documents do not provide enough information to answer this question. " +
+                    normalizedText = "The available indexed documents do not provide enough information to answer this question. " +
                             "The current corpus only contains technical documentation regarding specific launch vehicle components " +
                             "(such as the CE-20 cryogenic engine and CUS upper stage). An authoritative ISRO overview document " +
                             "must be ingested before this question can be answered from indexed evidence.";
@@ -167,22 +170,19 @@ public class AnswerGenerationService {
 
             // Extract citations with claim support and validity verification
             List<String> invalidCitations = new ArrayList<>();
-            List<Citation> citations = extractCitations(generatedText, evidence, invalidCitations);
-
-            // Clean answer text (remove citation patterns)
-            String cleanAnswer = cleanAnswerText(generatedText);
+            List<Citation> citations = extractCitations(normalizedText, evidence, invalidCitations);
 
             // If the answer is an explicit abstention, clear citations
-            if (isInsufficientEvidenceAnswer(cleanAnswer)) {
+            if (isInsufficientEvidenceAnswer(normalizedText)) {
                 citations = Collections.emptyList();
                 invalidCitations.clear();
             }
 
-            // Build response
-            answer.setAnswerText(cleanAnswer);
+            // Build response: retain grounded citation tags in answer text for UI interactivity
+            answer.setAnswerText(normalizedText);
             answer.setCitations(citations);
             answer.setInvalidCitations(invalidCitations);
-            answer.setConfidence(computeConfidence(cleanAnswer, citations, evidence.size()));
+            answer.setConfidence(computeConfidence(normalizedText, citations, evidence.size()));
             answer.setGenerationMethod("llm");
             answer.setContextWindowSize(context.length());
 
@@ -453,6 +453,22 @@ public class AnswerGenerationService {
     }
 
     /**
+     * Standardize citation markers across different LLM bracket formats (such as Chinese 【 】 and unicode spaces)
+     */
+    public static String normalizeCitationMarkers(String text) {
+        if (text == null) return "";
+        // Replace fullwidth brackets 【 】 with [ ]
+        String s = text.replace('\u3010', '[').replace('\u3011', ']');
+        // Replace narrow no-break space \u202F and non-breaking space \u00A0
+        s = s.replace('\u202F', ' ').replace('\u00A0', ' ');
+        // Normalize citation tags like [Source  1] or [Chunk 1] to [Source 1]
+        s = Pattern.compile("\\[(?:Source|Citation|Chunk)?[\\s]*#?(\\d+)\\]", Pattern.CASE_INSENSITIVE)
+                .matcher(s)
+                .replaceAll(mr -> "[Source " + mr.group(1) + "]");
+        return s;
+    }
+
+    /**
      * Extract citations from answer text and map to source chunks with claim support validation
      */
     public List<Citation> extractCitations(String answerText, List<RetrievalResultDTO> evidence) {
@@ -468,7 +484,7 @@ public class AnswerGenerationService {
         // Split answer into sentences to isolate claims
         String[] sentences = answerText.split("(?<=[.!?])\\s+|\\n+");
 
-        Pattern pattern = Pattern.compile("\\[(?:Source|Citation|Chunk)?[\\s\\h\\xA0]*#?(\\d+)\\]", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("[\\[\\u3010](?:Source|Citation|Chunk)?[\\s\\h\\xA0\\u202F]*#?(\\d+)[\\]\\u3011]", Pattern.CASE_INSENSITIVE);
         Map<Integer, Citation> citationMap = new LinkedHashMap<>();
 
         for (String sentence : sentences) {
@@ -491,6 +507,11 @@ public class AnswerGenerationService {
                             if (citation == null) {
                                 citation = new Citation();
                                 citation.setSourceNumber(sourceNum);
+                                citation.setCitationNumber(sourceNum);
+                                String title = evidenceItem.getDocumentTitle();
+                                if (title == null || title.isEmpty()) title = evidenceItem.getDocumentKey();
+                                if (title == null || title.isEmpty()) title = "Source " + sourceNum;
+                                citation.setSourceTitle(title);
                                 citation.setChunkId(evidenceItem.getChunkId());
                                 citation.setRevisionId(evidenceItem.getRevisionId());
                                 citation.setSectionTitle(evidenceItem.getSectionTitle());
@@ -579,8 +600,9 @@ public class AnswerGenerationService {
      */
     public String cleanAnswerText(String answerText) {
         if (answerText == null) return "";
-        return answerText.replaceAll("\\[(?:Source|Citation|Chunk)?[\\s\\h\\xA0]*#?\\d+\\]", "")
+        return answerText.replaceAll("[\\[\\u3010](?:Source|Citation|Chunk)?[\\s\\h\\xA0\\u202F]*#?\\d+[\\]\\u3011]", "")
                 .replace('\u00A0', ' ')
+                .replace('\u202F', ' ')
                 .replaceAll("\\s{2,}", " ")
                 .trim();
     }
@@ -738,6 +760,8 @@ public class AnswerGenerationService {
      */
     public static class Citation {
         private Integer sourceNumber;
+        private Integer citationNumber;
+        private String sourceTitle;
         private Long chunkId;
         private Long revisionId;
         private String sectionTitle;
@@ -749,7 +773,19 @@ public class AnswerGenerationService {
 
         // Getters & Setters
         public Integer getSourceNumber() { return sourceNumber; }
-        public void setSourceNumber(Integer sourceNumber) { this.sourceNumber = sourceNumber; }
+        public void setSourceNumber(Integer sourceNumber) {
+            this.sourceNumber = sourceNumber;
+            if (this.citationNumber == null) this.citationNumber = sourceNumber;
+        }
+
+        public Integer getCitationNumber() { return citationNumber != null ? citationNumber : sourceNumber; }
+        public void setCitationNumber(Integer citationNumber) {
+            this.citationNumber = citationNumber;
+            if (this.sourceNumber == null) this.sourceNumber = citationNumber;
+        }
+
+        public String getSourceTitle() { return sourceTitle; }
+        public void setSourceTitle(String sourceTitle) { this.sourceTitle = sourceTitle; }
 
         public Long getChunkId() { return chunkId; }
         public void setChunkId(Long chunkId) { this.chunkId = chunkId; }

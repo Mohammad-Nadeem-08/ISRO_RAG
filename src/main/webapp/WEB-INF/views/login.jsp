@@ -151,14 +151,14 @@
                 <p class="logo-subtitle">ISRO Technical Research & RAG Platform</p>
             </div>
 
-            <c:if test="${not empty param.error}">
+            <c:if test="${param.error != null or not empty loginError}">
                 <div class="alert alert-danger d-flex align-items-center gap-2">
                     <i class="fas fa-exclamation-circle text-danger"></i>
                     <span>Invalid credentials. Please verify username and password.</span>
                 </div>
             </c:if>
 
-            <c:if test="${not empty param.logout}">
+            <c:if test="${param.logout != null or not empty loggedOut}">
                 <div class="alert alert-success d-flex align-items-center gap-2">
                     <i class="fas fa-check-circle text-success"></i>
                     <span>You have been safely signed out.</span>

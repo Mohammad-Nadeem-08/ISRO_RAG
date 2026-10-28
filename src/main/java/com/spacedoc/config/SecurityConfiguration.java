@@ -51,8 +51,12 @@ public class SecurityConfiguration {
                         .permitAll()
                         .defaultSuccessUrl("/dashboard", true))
                 .logout(logout -> logout
-                        .permitAll()
-                        .logoutSuccessUrl("/login?logout"))
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll())
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .exceptionHandling(ex -> ex

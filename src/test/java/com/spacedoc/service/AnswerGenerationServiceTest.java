@@ -184,7 +184,7 @@ class AnswerGenerationServiceTest {
     }
 
     @Test
-    @DisplayName("Answer text excludes citation markers")
+    @DisplayName("Answer text retains citation markers and cleanAnswerText strips them")
     void testAnswerTextCleanedOfCitationMarkers() {
         // Arrange
         String query = "Query";
@@ -195,10 +195,22 @@ class AnswerGenerationServiceTest {
         // Act
         AnswerGenerationService.GeneratedAnswer answer = answerGenerationService.generateAnswer(query, evidence);
 
-        // Assert
+        // Assert - answer text retains citations for UI pill rendering
         String answerText = answer.getAnswerText();
-        assertFalse(answerText.contains("[Source"), "Answer text should not contain [Source markers");
-        assertFalse(answerText.contains("[Citation"), "Answer text should not contain [Citation markers");
+        assertTrue(answerText.contains("[Source 1]"), "Answer text should retain [Source 1] marker for UI pills");
+
+        // Assert - utility cleanAnswerText properly removes citation markers
+        String cleaned = answerGenerationService.cleanAnswerText(answerText);
+        assertFalse(cleaned.contains("[Source"), "Cleaned text should not contain [Source markers");
+        assertFalse(cleaned.contains("[Citation"), "Cleaned text should not contain [Citation markers");
+    }
+
+    @Test
+    @DisplayName("Normalize citation markers handles Chinese brackets and unicode spaces")
+    void testNormalizeCitationMarkers() {
+        String input = "Mission details\u3010Source\u202F1\u3011 and overview\u3010Source\u00A04\u3011.";
+        String normalized = AnswerGenerationService.normalizeCitationMarkers(input);
+        assertEquals("Mission details[Source 1] and overview[Source 4].", normalized);
     }
 
     // ============ Confidence Scoring Tests ============

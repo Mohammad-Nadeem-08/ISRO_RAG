@@ -26,7 +26,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
     "spring.datasource.password=",
     "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
     "spring.jpa.hibernate.ddl-auto=none",
-    "spring.flyway.enabled=false"
+    "spring.flyway.enabled=false",
+    "spacedoc.answer.enable-mock=true"
 })
 @DisplayName("Security & CSRF Login Integration Tests")
 public class SecurityIntegrationTest {
@@ -96,5 +97,48 @@ public class SecurityIntegrationTest {
                 .contentType("application/json")
                 .content("{\"query\":\"test query\",\"topK\":5}"))
             .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    @DisplayName("8. Test successful POST /logout with valid CSRF token redirects to login?logout and clears auth")
+    @WithMockUser(username = "admin")
+    void testSuccessfulLogoutWithCsrf() throws Exception {
+        mockMvc.perform(post("/logout")
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/login?logout"))
+            .andExpect(unauthenticated())
+            .andExpect(cookie().maxAge("JSESSIONID", 0));
+    }
+
+    @Test
+    @DisplayName("9. Test POST /logout without CSRF token returns 403 Forbidden")
+    @WithMockUser(username = "admin")
+    void testLogoutWithoutCsrf() throws Exception {
+        mockMvc.perform(post("/logout"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("10. Test end-to-end session lifecycle: login, access protected page, logout, access denied")
+    void testSessionLifecycle() throws Exception {
+        var loginResult = mockMvc.perform(formLogin("/login").user("admin").password("admin_local_dev_password"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/dashboard"))
+            .andExpect(authenticated().withUsername("admin"))
+            .andReturn();
+
+        var session = (org.springframework.mock.web.MockHttpSession) loginResult.getRequest().getSession(false);
+
+        mockMvc.perform(post("/logout")
+                .session(session)
+                .with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/login?logout"))
+            .andExpect(unauthenticated());
+
+        mockMvc.perform(get("/dashboard").session(session))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("http://localhost/login"));
     }
 }

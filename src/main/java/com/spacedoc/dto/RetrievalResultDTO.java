@@ -14,6 +14,7 @@ public class RetrievalResultDTO {
     private String conflictStatus;
     private Float applicabilityScore;
     private String applicabilityReason;
+    private String sourceUrl;
 
     public RetrievalResultDTO() {}
 
@@ -68,4 +69,7 @@ public class RetrievalResultDTO {
 
     public String getApplicabilityReason() { return applicabilityReason; }
     public void setApplicabilityReason(String applicabilityReason) { this.applicabilityReason = applicabilityReason; }
+
+    public String getSourceUrl() { return sourceUrl; }
+    public void setSourceUrl(String sourceUrl) { this.sourceUrl = sourceUrl; }
 }

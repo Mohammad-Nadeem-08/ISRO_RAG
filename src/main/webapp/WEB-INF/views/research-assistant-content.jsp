@@ -251,6 +251,27 @@
         box-shadow: 0 2px 4px rgba(37, 99, 235, 0.15);
     }
 
+    .citation-pill.unresolved {
+        background: #fffbeb !important;
+        color: #b45309 !important;
+        border-color: #fde68a !important;
+        cursor: not-allowed;
+    }
+
+    .citation-pill.unresolved:hover {
+        background: #fef3c7 !important;
+        color: #92400e !important;
+        border-color: #fcd34d !important;
+        transform: none;
+        box-shadow: none;
+    }
+
+    @keyframes pulseHighlight {
+        0% { transform: scale(1.02); }
+        50% { transform: scale(1.00); }
+        100% { transform: scale(1.00); }
+    }
+
     /* Chat Input Bar */
     .chat-input-bar {
         padding: 16px 20px;
@@ -613,6 +634,7 @@
     }
 
     let conversationHistory = [];
+    let currentEvidence = [];
 
     document.addEventListener('DOMContentLoaded', function () {
         const submitBtn = document.getElementById('submit-btn');
@@ -678,14 +700,17 @@
             removeMessage(loadingId);
             submitBtn.disabled = false;
 
-            // Render Markdown-formatted answer
+            // Store retrieved evidence for citation resolution
+            currentEvidence = data.evidence || [];
+
+            // Display evidence chunks in sidebar
+            displayEvidence(currentEvidence);
+
+            // Render Markdown-formatted answer with interactive validated citation pills
             const answerHtml = formatAnswer(data);
             addMessage('assistant', answerHtml);
 
-            // Display evidence chunks
-            displayEvidence(data.evidence);
-
-            // Update telemetry
+            // Update session telemetry metrics
             displayMetrics(data);
 
             conversationHistory.push({
@@ -693,7 +718,7 @@
                 answer: data.answer,
                 citations: data.citations,
                 evidence: data.evidence,
-                confidence: data.confidenceScore,
+                confidence: data.confidence != null ? data.confidence : data.confidenceScore,
                 timestamp: new Date()
             });
         })
@@ -704,6 +729,31 @@
             addMessage('assistant', `<div class="alert alert-danger mb-0" style="font-size: 13px;"><i class="fas fa-exclamation-triangle me-1"></i> Failed to generate answer: \${escapeHtml(e.message)}</div>`);
             showError('Failed to generate answer: ' + e.message);
         });
+    }
+
+    /**
+     * Parse and validate all citation references from the answer text against retrieved evidence.
+     */
+    function extractAndValidateCitations(answerText, evidence) {
+        if (!answerText) return { valid: [], unresolved: [], totalFound: 0 };
+        const pattern = /[\[\u3010](?:Source|Citation|Chunk)?[\s\h\xA0\u202F]*#?(\d+)[\]\u3011]/gi;
+        const evidenceCount = (evidence && Array.isArray(evidence)) ? evidence.length : 0;
+        const seenValid = new Set();
+        const seenUnresolved = new Set();
+        let match;
+        while ((match = pattern.exec(answerText)) !== null) {
+            const num = parseInt(match[1], 10);
+            if (num >= 1 && num <= evidenceCount) {
+                seenValid.add(num);
+            } else {
+                seenUnresolved.add(num);
+            }
+        }
+        return {
+            valid: Array.from(seenValid).sort((a, b) => a - b),
+            unresolved: Array.from(seenUnresolved).sort((a, b) => a - b),
+            totalFound: seenValid.size + seenUnresolved.size
+        };
     }
 
     /**
@@ -738,7 +788,6 @@
         // 6. Unordered lists: lines starting with * or -
         safe = safe.replace(/^\s*[-*]\s+(.+)$/gim, '<li>$1</li>');
         safe = safe.replace(/(<li>.*<\/li>)/gms, '<ul>$1</ul>');
-        // Clean duplicate adjacent <ul> tags
         safe = safe.replace(/<\/ul>\s*<ul>/g, '');
 
         // 7. Ordered lists: lines starting with 1. 2. etc
@@ -758,10 +807,18 @@
             return `<p>\${p.replace(/\n/g, '<br>')}</p>`;
         }).join('');
 
-        // 9. Interactive Citation Pills: [Source N], [Citation N], [N]
-        safe = safe.replace(/\[(?:Source|Citation|Chunk)?[\s\h\xA0]*#?(\d+)\]/gi, function(match, p1) {
-            const idx = parseInt(p1, 10) - 1;
-            return `<span class="citation-pill" onclick="highlightEvidence(\${idx})" title="Jump to Source \${p1} in Evidence"><i class="fas fa-bookmark me-1" style="font-size: 9px;"></i>Source \${p1}</span>`;
+        // 9. Interactive Citation Pills: [Source N], [Citation N], [N], and Chinese brackets 【Source N】
+        safe = safe.replace(/([\[\u3010](?:Source|Citation|Chunk)?[\s\h\xA0\u202F]*#?(\d+)[\]\u3011])/gi, function(match, full, p1) {
+            const sNum = parseInt(p1, 10);
+            const idx = sNum - 1;
+            const evidenceCount = (currentEvidence && Array.isArray(currentEvidence)) ? currentEvidence.length : 0;
+            if (sNum >= 1 && sNum <= evidenceCount) {
+                const evidenceItem = currentEvidence[idx];
+                const docTitle = evidenceItem && (evidenceItem.documentTitle || evidenceItem.documentKey) ? ` - \${escapeHtml(evidenceItem.documentTitle || evidenceItem.documentKey)}` : '';
+                return `<span class="citation-pill" onclick="highlightEvidence(\${idx})" title="Jump to Source \${sNum}\${docTitle} in Evidence"><i class="fas fa-bookmark me-1" style="font-size: 9px;"></i>Source \${sNum}</span>`;
+            } else {
+                return `<span class="citation-pill unresolved" title="Unresolved citation: Source \${sNum} was not found in retrieved evidence (\${evidenceCount} sources retrieved)"><i class="fas fa-exclamation-triangle me-1 text-warning" style="font-size: 9px;"></i>[Source \${sNum} - Unresolved]</span>`;
+            }
         });
 
         return safe;
@@ -774,18 +831,27 @@
 
         let formatted = `<div class="markdown-content">\${renderSafeMarkdown(data.answer)}</div>`;
 
-        // Render referenced citations footer if available
-        if (data.citations && Array.isArray(data.citations) && data.citations.length > 0) {
+        // Cross-validate citations from answer or backend citations DTO
+        const evidence = data.evidence || currentEvidence || [];
+        const citResult = extractAndValidateCitations(data.answer, evidence);
+
+        if (citResult.valid.length > 0) {
             formatted += '<div class="mt-3 pt-2 border-top" style="border-color: #f1f5f9 !important;">';
-            formatted += '<div class="text-muted mb-2 d-flex align-items-center gap-1" style="font-size: 11px; font-weight: 600;"><i class="fas fa-check-circle text-success"></i> Verified Sources:</div>';
+            formatted += '<div class="text-muted mb-2 d-flex align-items-center gap-1" style="font-size: 11px; font-weight: 600;"><i class="fas fa-check-circle text-success"></i> Referenced Evidence Sources:</div>';
             formatted += '<div class="d-flex flex-wrap gap-1">';
-            data.citations.forEach((c) => {
-                const sNum = c.citationNumber != null ? c.citationNumber : 1;
+            citResult.valid.forEach((sNum) => {
                 const idx = sNum - 1;
-                const srcTitle = c.sourceTitle ? escapeHtml(c.sourceTitle) : `Source \${sNum}`;
+                const evidenceItem = evidence[idx];
+                const srcTitle = (evidenceItem && (evidenceItem.documentTitle || evidenceItem.documentKey)) ? escapeHtml(evidenceItem.documentTitle || evidenceItem.documentKey) : `Source \${sNum}`;
                 formatted += `<span class="citation-pill" onclick="highlightEvidence(\${idx})" title="Jump to \${srcTitle}"><i class="fas fa-bookmark me-1" style="font-size: 9px;"></i>[\${sNum}] \${srcTitle}</span>`;
             });
             formatted += '</div></div>';
+        }
+
+        if (citResult.unresolved.length > 0) {
+            formatted += '<div class="mt-2 pt-1">';
+            formatted += `<small class="text-warning d-flex align-items-center gap-1" style="font-size: 11px;"><i class="fas fa-exclamation-circle"></i> Unresolved citation reference(s): \${citResult.unresolved.map(n => '[' + n + ']').join(', ')}</small>`;
+            formatted += '</div>';
         }
 
         return formatted;
@@ -874,6 +940,8 @@
             const itemBox = document.createElement('div');
             itemBox.className = 'evidence-item-box';
             itemBox.id = `evidence-item-\${index}`;
+            itemBox.setAttribute('data-source-index', index);
+            itemBox.setAttribute('data-source-number', index + 1);
 
             const header = document.createElement('div');
             header.className = 'evidence-item-header';
@@ -882,55 +950,119 @@
             sourceTitle.className = 'evidence-item-source';
             sourceTitle.textContent = `Source \${index + 1}`;
 
-            const score = document.createElement('span');
-            score.className = 'evidence-item-score';
-            const simScore = item.similarityScore != null ? (item.similarityScore * 100).toFixed(1) + '%' : 'Dense+Lexical';
-            score.textContent = simScore;
+            const badgeContainer = document.createElement('div');
+            badgeContainer.className = 'd-flex align-items-center gap-1';
 
-            header.appendChild(sourceTitle);
-            header.appendChild(score);
-            itemBox.appendChild(header);
+            // Dense+Lexical retrieval method badge
+            const methodBadge = document.createElement('span');
+            methodBadge.className = 'badge bg-primary-subtle text-primary border border-primary-subtle';
+            methodBadge.style.fontSize = '9.5px';
+            methodBadge.style.padding = '2px 5px';
+            methodBadge.textContent = 'Dense+Lexical';
+            badgeContainer.appendChild(methodBadge);
 
-            if (item.documentTitle) {
-                const docTitle = document.createElement('div');
-                docTitle.style.fontSize = '12px';
-                docTitle.style.fontWeight = '600';
-                docTitle.style.color = '#1e293b';
-                docTitle.style.marginBottom = '4px';
-                docTitle.textContent = item.documentTitle;
-                itemBox.appendChild(docTitle);
+            // Retrieval score or relevance percentage
+            if (item.relevanceScore != null) {
+                const scoreBadge = document.createElement('span');
+                scoreBadge.className = 'evidence-item-score';
+                const scoreVal = item.relevanceScore;
+                if (scoreVal <= 0.05) {
+                    scoreBadge.textContent = `RRF \${scoreVal.toFixed(3)}`;
+                } else {
+                    scoreBadge.textContent = `\${(scoreVal * 100).toFixed(1)}%`;
+                }
+                badgeContainer.appendChild(scoreBadge);
             }
 
-            const text = document.createElement('div');
-            text.className = 'evidence-item-text';
-            text.textContent = item.chunkText || item.text || '';
-            itemBox.appendChild(text);
+            header.appendChild(sourceTitle);
+            header.appendChild(badgeContainer);
+            itemBox.appendChild(header);
 
+            // Document Title or URL
+            const docTitleText = item.documentTitle || item.documentKey || (item.sourceUrl ? item.sourceUrl : '');
+            if (docTitleText) {
+                const docRow = document.createElement('div');
+                docRow.style.fontSize = '12px';
+                docRow.style.fontWeight = '600';
+                docRow.style.color = '#1e293b';
+                docRow.style.marginBottom = '6px';
+                docRow.style.display = 'flex';
+                docRow.style.alignItems = 'center';
+                docRow.style.gap = '5px';
+
+                if (item.sourceUrl) {
+                    const docLink = document.createElement('a');
+                    docLink.href = item.sourceUrl;
+                    docLink.target = '_blank';
+                    docLink.rel = 'noopener noreferrer';
+                    docLink.style.color = '#2563eb';
+                    docLink.style.textDecoration = 'none';
+                    docLink.title = item.sourceUrl;
+                    docLink.innerHTML = `<i class="fas fa-external-link-alt" style="font-size: 10px;"></i> \${escapeHtml(docTitleText)}`;
+                    docRow.appendChild(docLink);
+                } else {
+                    docRow.innerHTML = `<i class="fas fa-file-alt text-muted" style="font-size: 10.5px;"></i> <span>\${escapeHtml(docTitleText)}</span>`;
+                }
+                itemBox.appendChild(docRow);
+            }
+
+            // Readable excerpt of the retrieved chunk
+            const rawContent = (item.content || item.chunkText || item.text || '').trim();
+            if (rawContent) {
+                const text = document.createElement('div');
+                text.className = 'evidence-item-text';
+                text.textContent = rawContent;
+                itemBox.appendChild(text);
+            }
+
+            // Metadata footer: Page number, Chunk ID, Revision, Section Title
             const meta = document.createElement('div');
             meta.className = 'evidence-item-meta';
 
-            if (item.chunkIndex != null) {
+            if (item.pageNumber != null) {
+                const pagePill = document.createElement('span');
+                pagePill.className = 'evidence-meta-pill';
+                pagePill.textContent = `Page \${item.pageNumber}`;
+                meta.appendChild(pagePill);
+            }
+
+            const chunkIdVal = item.chunkId != null ? item.chunkId : item.chunkIndex;
+            if (chunkIdVal != null) {
                 const chunkPill = document.createElement('span');
                 chunkPill.className = 'evidence-meta-pill';
-                chunkPill.textContent = `Chunk #\${item.chunkIndex}`;
+                chunkPill.textContent = `Chunk #\${chunkIdVal}`;
                 meta.appendChild(chunkPill);
             }
 
-            if (item.revisionNumber != null) {
+            const revIdVal = item.revisionId != null ? item.revisionId : item.revisionNumber;
+            if (revIdVal != null) {
                 const revPill = document.createElement('span');
                 revPill.className = 'evidence-meta-pill';
-                revPill.textContent = `Rev \${item.revisionNumber}`;
+                revPill.textContent = `Rev \${revIdVal}`;
                 meta.appendChild(revPill);
             }
 
-            itemBox.appendChild(meta);
+            if (item.sectionTitle) {
+                const secPill = document.createElement('span');
+                secPill.className = 'evidence-meta-pill';
+                secPill.textContent = `Sec: \${item.sectionTitle}`;
+                meta.appendChild(secPill);
+            }
+
+            if (meta.children.length > 0) {
+                itemBox.appendChild(meta);
+            }
+
             container.appendChild(itemBox);
         });
     }
 
     function highlightEvidence(index) {
         const item = document.getElementById(`evidence-item-\${index}`);
-        if (!item) return;
+        if (!item) {
+            showError(`Evidence Source \${index + 1} is not available in the Retrieved Evidence panel.`);
+            return;
+        }
 
         // Remove previous highlights
         document.querySelectorAll('.evidence-item-box').forEach(el => el.classList.remove('highlighted'));
@@ -944,15 +1076,52 @@
         const valConf = document.getElementById('val-confidence');
         const valCit = document.getElementById('val-citations');
 
-        const conf = data.confidenceScore != null ? (data.confidenceScore * 100).toFixed(0) + '%' : 'High';
-        const citCount = (data.citations && Array.isArray(data.citations)) ? data.citations.length : 0;
+        const evidence = data.evidence || currentEvidence || [];
+        const citResult = extractAndValidateCitations(data.answer || '', evidence);
 
-        if (confBadge) confBadge.textContent = `Confidence: \${conf}`;
-        if (valConf) valConf.textContent = conf;
-        if (valCit) valCit.textContent = `\${citCount} active`;
+        const validCount = citResult.valid.length;
+        const unresCount = citResult.unresolved.length;
+
+        // Telemetry citations count: actual validated citations
+        if (valCit) {
+            if (unresCount > 0) {
+                valCit.innerHTML = `<span class="text-success">\${validCount} active</span> <span style="font-size: 11px; color: #f59e0b;" title="\${unresCount} unresolved citation(s) in answer">(\${unresCount} unres)</span>`;
+            } else {
+                valCit.textContent = `\${validCount} active`;
+            }
+        }
+
+        // Calibrated confidence
+        const rawConf = data.confidence != null ? data.confidence : data.confidenceScore;
+        let confPct = '-';
+        if (rawConf != null) {
+            confPct = (rawConf * 100).toFixed(0) + '%';
+        } else if (validCount > 0) {
+            confPct = '85%';
+        } else {
+            confPct = '0%';
+        }
+        if (valConf) valConf.textContent = confPct;
+
+        if (confBadge) {
+            if (validCount > 0 && (rawConf == null || rawConf >= 0.5)) {
+                confBadge.className = 'badge bg-success-subtle text-success';
+                confBadge.textContent = `Grounded (\${validCount} sources)`;
+            } else if (validCount > 0) {
+                confBadge.className = 'badge bg-warning-subtle text-warning';
+                confBadge.textContent = `Partial (\${validCount} sources)`;
+            } else if (data.answer && data.answer.toLowerCase().includes('insufficient')) {
+                confBadge.className = 'badge bg-secondary-subtle text-secondary';
+                confBadge.textContent = 'Abstained';
+            } else {
+                confBadge.className = 'badge bg-secondary-subtle text-secondary';
+                confBadge.textContent = 'Ready';
+            }
+        }
     }
 
     function clearConversation() {
+        currentEvidence = [];
         const container = document.getElementById('message-container');
         if (!container) return;
 

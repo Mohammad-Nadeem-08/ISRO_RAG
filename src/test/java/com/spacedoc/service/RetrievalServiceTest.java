@@ -339,11 +339,36 @@ public class RetrievalServiceTest {
         Document document = new Document();
         document.setId(1L);
         document.setDocumentKey("test-doc");
+        document.setTitle("ISRO Test Document");
+        document.setSourceUrl("https://www.isro.gov.in/test");
 
         revision.setDocument(document);
         chunk.setDocumentRevision(revision);
 
         return chunk;
+    }
+
+    @Test
+    @DisplayName("Lexical retrieval populates document title, key, page number, and source URL")
+    void testRetrievalPopulatesDocumentMetadata() {
+        String query = "ISRO mission";
+        DocumentChunk chunk = createTestChunk(42L, "ISRO mission details", 10L);
+        when(chunkRepository.searchByFullText(anyString(), any(Pageable.class)))
+            .thenReturn(List.of(chunk));
+
+        List<RetrievalResultDTO> results = retrievalService.lexicalRetrieval(query, 5);
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        RetrievalResultDTO dto = results.get(0);
+        assertEquals(42L, dto.getChunkId());
+        assertEquals(10L, dto.getRevisionId());
+        assertEquals(1L, dto.getDocumentId());
+        assertEquals("test-doc", dto.getDocumentKey());
+        assertEquals("ISRO Test Document", dto.getDocumentTitle());
+        assertEquals("https://www.isro.gov.in/test", dto.getSourceUrl());
+        assertEquals(1, dto.getPageNumber());
+        assertEquals("ISRO mission details", dto.getContent());
     }
 
     private RetrievalResultDTO createDTO(Long chunkId, String content) {

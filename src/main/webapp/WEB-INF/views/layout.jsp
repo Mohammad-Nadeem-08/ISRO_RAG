@@ -200,6 +200,13 @@
             font-weight: 600;
         }
 
+        .logout-form {
+            display: inline-flex;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
         .btn-logout {
             color: #cbd5e1;
             background: transparent;
@@ -213,6 +220,9 @@
             align-items: center;
             gap: 6px;
             transition: all 0.2s ease;
+            cursor: pointer;
+            font-family: inherit;
+            line-height: inherit;
         }
 
         .btn-logout:hover {
@@ -684,10 +694,13 @@
                 </div>
                 <span><c:out default="admin" escapeXml="true" value="${pageContext.request.userPrincipal.name}"/></span>
             </div>
-            <a class="btn-logout" href="/logout" title="Sign out of SpaceDoc">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="d-none d-sm-inline">Logout</span>
-            </a>
+            <form action="${pageContext.request.contextPath}/logout" method="POST" class="logout-form">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                <button type="submit" class="btn-logout" id="logoutButton" title="Sign out of SpaceDoc">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="d-none d-sm-inline">Logout</span>
+                </button>
+            </form>
         </div>
     </header>
 

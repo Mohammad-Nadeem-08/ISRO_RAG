@@ -1,6 +1,7 @@
 package com.spacedoc.service;
 
 import com.spacedoc.dto.RetrievalResultDTO;
+import com.spacedoc.entity.Document;
 import com.spacedoc.entity.DocumentChunk;
 import com.spacedoc.repository.DocumentChunkRepository;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -457,7 +459,20 @@ public class RetrievalService {
     private RetrievalResultDTO convertToDTO(DocumentChunk chunk) {
         RetrievalResultDTO dto = new RetrievalResultDTO();
         dto.setChunkId(chunk.getId());
-        dto.setRevisionId(chunk.getDocumentRevision().getId());
+        if (chunk.getDocumentRevision() != null) {
+            dto.setRevisionId(chunk.getDocumentRevision().getId());
+            try {
+                if (chunk.getDocumentRevision().getDocument() != null) {
+                    Document doc = chunk.getDocumentRevision().getDocument();
+                    dto.setDocumentId(doc.getId());
+                    dto.setDocumentKey(doc.getDocumentKey());
+                    dto.setDocumentTitle(doc.getTitle());
+                    dto.setSourceUrl(doc.getSourceUrl());
+                }
+            } catch (Exception e) {
+                log.debug("Could not resolve document details for chunk {}: {}", chunk.getId(), e.getMessage());
+            }
+        }
         dto.setContent(chunk.getContent());
         dto.setSectionTitle(chunk.getSectionTitle());
         dto.setPageNumber(chunk.getPageNumber());
